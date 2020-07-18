@@ -18,9 +18,11 @@ import Search from './component/Search copy'
 import Search2 from './component/Search-'
 import MessageScreen from './component/Message'
 import OrderFormScreen from './component/OrderForm'
-
+import storage from './component/global/storage'
 import {TabAppNavigator}  from './component/TabNavigation'
 
+
+global.storage = storage;
 const HomeNavigator =createStackNavigator(
   {
     Home:HomeScreen,

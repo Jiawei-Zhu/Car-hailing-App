@@ -8,7 +8,7 @@ import { NavigationEvents } from 'react-navigation'
 import { MultiPoint } from './Multipoint'
 import { DriversPos } from './DriversPos.js'
 import { ScrollView } from 'react-native-gesture-handler';
-
+import Storage from './global/DeviceStorage'
 var Dimensions = require('Dimensions');
 var { width, height } = Dimensions.get('window');
 var screenWidth = width;
@@ -914,7 +914,12 @@ export default class HomeScreen extends React.Component {
               <TouchableOpacity style={{alignItems:'center',backgroundColor:'lightblue',height:20,width:40,borderRightWidth:1}} onPress={()=>{
                 let a=this.changeTwoDecimal(this.state.Driverlatitude)
                 let b =this.changeTwoDecimal(this.state.Driverlongitude)
-              this.setState({testinput1:a.toString(),testinput2:b.toString()})}}>
+                this.setState({testinput1:a.toString(),testinput2:b.toString()})
+                let UserData = Storage.get("User")
+                console.log(UserData)
+              }
+                
+              }>
               <Text>更新</Text></TouchableOpacity>
               <TouchableOpacity style={{alignItems:'center',backgroundColor:'lightblue',height:20,width:40}} onPress={()=>{this.DriverMoveTest()}}><Text>提交</Text></TouchableOpacity>
             </View>

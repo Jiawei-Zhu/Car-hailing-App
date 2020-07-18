@@ -1,0 +1,5 @@
+07/18  添加storage来进行全局保存登陆信息，默认保存时间为7天
+    使用方法： 封装成DeviceStorage类
+    在页面import xxx from './gobal/DeviceStorage' 
+    使用xxx.save(key,data) 来保存data数据
+    使用xxx.get(ket) 来获取ket所对应的信息

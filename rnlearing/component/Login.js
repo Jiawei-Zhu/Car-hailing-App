@@ -2,6 +2,7 @@ import  React,{Component} from 'react'
 import {Text,Image,View,TextInput,StyleSheet,FlatList,Botton,TouchableOpacity } from 'react-native';
 import { createStackNavigator, createAppContainer } from 'react-navigation'
 import {Back} from './module/Back'
+import DeviceStorage from './global/DeviceStorage'
 //屏幕宽度
 var Dimensions = require('Dimensions');
 var {width,height} = Dimensions.get('window');
@@ -41,19 +42,21 @@ export default class LoginScreen extends Component{
     Login(){
         
         const{username,password}=this.state
+
         // fetch("https://www.kingdom174.work",{method:'GET',body:JSON.stringify(data)})   
         // .then(response => response.json()) // parses response to JSON
         fetch("https://www.kingdom174.work/Login?username="+username+"&password="+password+"&location=",{method:'GET'})   
         .then(response=>response.json())
         .then(json=>{
             this.setState({token:json.token})
-            alert(string)
+            this.UserMessage()
         })
     }
 
     UserMessage()
     {
         const{token}=this.state
+        let UserData = {};
         fetch("https://www.kingdom174.work/Per_Information?token="+token)
         .then(res=>res.json())
         .then(json=>{
@@ -64,10 +67,20 @@ export default class LoginScreen extends Component{
                     Sex:json.Sex,
                     Status:json.Status,
                     PhoneNumber:json.PhoneNumber,
+                    
                   },
                   ...this.state.logs,
                 ],
               })
+              UserData.username = this.state.username
+              UserData.password = this.state.password
+              UserData.token = token
+              UserData.userId =json.UserID
+              UserData.Sex = json.Sex
+              UserData.Status = json.Status
+              UserData.PhoneNumber = json.PhoneNumber
+  
+              DeviceStorage.save("User",UserData);
         })
     }
 
