@@ -19,6 +19,7 @@ import Search2 from './component/Search-'
 import MessageScreen from './component/Message'
 import OrderFormScreen from './component/OrderForm'
 import storage from './component/global/storage'
+import RegisterSearch from './component/Register'
 import {TabAppNavigator}  from './component/TabNavigation'
 
 
@@ -29,14 +30,19 @@ const HomeNavigator =createStackNavigator(
     Search:Search
   }
 )
-
+const LoginNavigator =createStackNavigator(
+  {
+    Login:LoginScreen,
+    Register:RegisterSearch
+  }
+)
 const AppNavigator = createDrawerNavigator({
   Home: {
     screen:HomeNavigator,
     navigationOptions: ({navigation}) => ({header: null})
   },
   Login: {
-    screen: LoginScreen,
+    screen: LoginNavigator,
     navigationOptions: ({navigation}) => ({header: null})
   },
   Main: {

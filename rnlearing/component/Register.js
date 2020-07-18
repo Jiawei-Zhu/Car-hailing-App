@@ -14,23 +14,19 @@ export default class LoginScreen extends Component{
         this.state={
             username:'',
             password:'',
+            Apassword:'',
+            PhoneNumber:'',
+            Sex:'',
             token:'',
             logs:[],
+            flag:false,
+            isSame:false,
         }
     }
 
 
     componentDidMount(){}
-     LocalLogin(){
-            const{username,password}=this.state
-            if(username===password&&username==='admin')
-            {
-                alert('登陆成功')
-                this.props.navigation.navigate('MainMenu')
-            }else{
-                alert('账号或密码错误')
-            }
-    }
+
 
     Register(){
         
@@ -53,38 +49,8 @@ export default class LoginScreen extends Component{
         })
     }
 
-    UserMessage()
-    {
-        const{token}=this.state
-        let UserData = {};
-        fetch("https://www.kingdom174.work/Per_Information?token="+token)
-        .then(res=>res.json())
-        .then(json=>{
-            this.setState({
-                logs: [
-                  {
-                    UserID: json.UserID,
-                    Sex:json.Sex,
-                    Status:json.Status,
-                    PhoneNumber:json.PhoneNumber,
-                    
-                  },
-                  ...this.state.logs,
-                ],
-              })
-              UserData.username = this.state.username
-              UserData.password = this.state.password
-              UserData.token = token
-              UserData.userId =json.UserID
-              UserData.Sex = json.Sex
-              UserData.Status = json.Status
-              UserData.PhoneNumber = json.PhoneNumber
-  
-              DeviceStorage.save("User",UserData);
-        })
-    }
 
-    _Back=()=>this.props.navigation.goBack(null)
+    _Back=()=>this.props.navigation.goBack()
     _renderItem = ({ item }) =>
   <Text style={styles.logText}>{item. UserID} {item. Sex}  {item.Status}</Text>
 
@@ -95,38 +61,54 @@ export default class LoginScreen extends Component{
               <TouchableOpacity style={styles.back} activeOpacity={0.2} onPress={this._Back}>
                 <Image style={styles.backimg} source={require('../images/back_img.png')}></Image>
               </TouchableOpacity>
-                 {/*头像*/}
-                 <Image source={require('../images/head_icon.png')} style={styles.iconStyle} ></Image>
+                 
                 <TextInput style={styles.textInputStyle} 
-                onChangeText={(username)=>this.setState({username})}
-                value={this.state.username}
-                placeholder={'请输入用户名(admin)'}/>
+                    onChangeText={(username)=>this.setState({username})}
+                    value={this.state.username}
+                    placeholder={'请输入用户名(admin)'}/>
                 <TextInput style={styles.textInputStyle} 
-                onChangeText={(password)=>this.setState({password})}
-                value={this.state.password}
-                secureTextEntry ={true}
-                placeholder={'请输入密码(admin)'}/>
-                 <TextInput style={styles.textInputStyle} 
-                onChangeText={(token)=>this.setState({token})}
-                value={this.state.token}
-                placeholder={'token'}/>
-                <TouchableOpacity style={styles.loginBtnStyle} onPress={()=>{this.Login()}} >
-                 <Text style={{color:'white',textAlign:'center'}}  onPress={()=>{this.Login()}}>登陆</Text>
+                    onChangeText={(password)=>this.setState({password,flag:true})}
+                    value={this.state.password}
+                    secureTextEntry ={true}
+                     placeholder={'请输入密码(admin)'}/>
+                <TextInput style={styles.textInputStyle} 
+                    onChangeText={
+                        (Apassword)=>{
+                        if (Apassword == this.state.password) 
+                            Same = true;
+                        else
+                            Same =false;
+                        this.setState({Apassword,isSame:Same}) 
+                    } }
+                    value={this.state.Apassword}
+                    secureTextEntry ={true}
+                    placeholder={'请再次输入密码(admin)'}/>
+                {
+                    this.state.flag == false ? 
+                    this.state.isSame ? 
+                    <View>
+                        <Text>请输入第二次密码</Text>
+                    </View>
+                    :
+                    <View>
+                    </View>
+                    :<View>
+                        <Text>两次密码输入不同</Text>
+                    </View>
+                }
+                
+
+                <TextInput style={styles.textInputStyle} 
+                    onChangeText={(PhoneNumber)=>this.setState({PhoneNumber})}
+                    value={this.state.PhoneNumber}
+                    secureTextEntry ={true}
+                     placeholder={'请输入手机号'}/>
+                
+                <TouchableOpacity style={styles.loginBtnStyle} onPress={()=>{this.Register()}} >
+                     <Text style={{color:'white',textAlign:'center'}}>注册</Text>
                 </TouchableOpacity>
-                <View style={styles.settingStyle}>
-                    <Text>无法登录</Text>
-                    <TouchableOpacity  onPress={()=>{this.props.navigation.navigate("Register")}} >
-                        <Text>新用户</Text>
-                    </TouchableOpacity>
-                        
-                </View>
+ 
                 {/*其他登录方式*/}
-                <View style={styles.otherLoginStyle}>
-                     <Text style={{textAlign:'left'}}>其他登录方式</Text>
-                    <Image style={styles.otherLoginIcon} source={require('../images/qq_icon.png')}></Image>
-                    <Image style={styles.otherLoginIcon} source={require('../images/wechat_icon.png')}></Image>
-                    <Image style={styles.otherLoginIcon} source={require('../images/weibo_icon.png')}></Image>
-                </View>
                 {/* 调试部分 */}
                 <View style={{flex:1,justifyContent:'center',alignItems:'center',flexDirection:'column'}}>
                     <Text style={styles.login}>以下为调试部分</Text>
