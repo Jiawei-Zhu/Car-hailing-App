@@ -45,7 +45,7 @@ export default class LoginScreen extends Component{
 
         // fetch("https://www.kingdom174.work",{method:'GET',body:JSON.stringify(data)})   
         // .then(response => response.json()) // parses response to JSON
-        fetch("https://www.kingdom174.work/Login?username="+username+"&password="+password+"&location=",{method:'GET'})   
+        fetch("https://www.kingdom174.work/Login?username="+username+"&password="+password+"&status=1",{method:'GET'})   
         .then(response=>response.json())
         .then(json=>{
             this.setState({token:json.token})
@@ -81,6 +81,7 @@ export default class LoginScreen extends Component{
               UserData.PhoneNumber = json.PhoneNumber
   
               DeviceStorage.save("User",UserData);
+              this.props.navigation.navigate("Home")
         })
     }
 

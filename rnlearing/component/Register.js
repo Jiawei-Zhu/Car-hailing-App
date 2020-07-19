@@ -3,11 +3,13 @@ import {Text,Image,View,TextInput,StyleSheet,FlatList,Botton,TouchableOpacity } 
 import { createStackNavigator, createAppContainer } from 'react-navigation'
 import {Back} from './module/Back'
 import DeviceStorage from './global/DeviceStorage'
+import RadioModal from 'react-native-radio-master';
+
 //屏幕宽度
 var Dimensions = require('Dimensions');
 var {width,height} = Dimensions.get('window');
 var screenWidth = width;
-
+var UserData = {};
 export default class LoginScreen extends Component{
     constructor(props){
         super(props)
@@ -16,11 +18,12 @@ export default class LoginScreen extends Component{
             password:'',
             Apassword:'',
             PhoneNumber:'',
-            Sex:'',
+            Sex:'男',
             token:'',
             logs:[],
-            flag:false,
-            isSame:false,
+            _flag:false,//第一个密码框输入标识
+            isSame:false,//两个密码是否相同标识
+            _Aflag:false,//第二个密码框输入标识
         }
     }
 
@@ -30,22 +33,64 @@ export default class LoginScreen extends Component{
 
     Register(){
         
-        const{username,password}=this.state
+        const{username,password,PhoneNumber,Sex}=this.state
         // fetch("https://www.kingdom174.work",{method:'GET',body:JSON.stringify(data)})   
         // .then(response => response.json()) // parses response to JSON
-        fetch("https://www.kingdom174.work/register?sex=register&r_username="+username+"&r_password="+password,{method:'GET'})   
+        if(this.state.isSame == false || username=='' || PhoneNumber =='')
+        {
+            alert("请输入完整信息")
+            return;
+        }
+        fetch("https://www.kingdom174.work/register?sex="+Sex+"&r_username="+username+"&r_password="+password+"&PhoneNumber="+PhoneNumber+"&status=1",{method:'GET'})
+        .then(response => response.json())
+        .then(json => {
+            alert(json.message)
+            this.Login();
+        })   
     }
     Login(){
         
         const{username,password}=this.state
-
+        
         // fetch("https://www.kingdom174.work",{method:'GET',body:JSON.stringify(data)})   
         // .then(response => response.json()) // parses response to JSON
         fetch("https://www.kingdom174.work/Login?username="+username+"&password="+password+"&location=",{method:'GET'})   
         .then(response=>response.json())
         .then(json=>{
             this.setState({token:json.token})
-            this.UserMessage()
+            this.UserMessage();
+            
+        })
+    }
+    UserMessage()
+    {
+        const{token}=this.state
+        let UserData = {};
+        fetch("https://www.kingdom174.work/Per_Information?token="+token)
+        .then(res=>res.json())
+        .then(json=>{
+            this.setState({
+                logs: [
+                  {
+                    UserID: json.UserID,
+                    Sex:json.Sex,
+                    Status:json.Status,
+                    PhoneNumber:json.PhoneNumber,
+                    
+                  },
+                  ...this.state.logs,
+                ],
+              })
+              UserData.username = this.state.username
+              UserData.password = this.state.password
+              UserData.token = token
+              UserData.userId =json.UserID
+              UserData.Sex = json.Sex
+              UserData.Status = json.Status
+              UserData.PhoneNumber = json.PhoneNumber
+              console.log(UserData)
+              DeviceStorage.save("User",UserData);
+              this.props.navigation.navigate("Home")
         })
     }
 
@@ -61,42 +106,64 @@ export default class LoginScreen extends Component{
               <TouchableOpacity style={styles.back} activeOpacity={0.2} onPress={this._Back}>
                 <Image style={styles.backimg} source={require('../images/back_img.png')}></Image>
               </TouchableOpacity>
-                 
+                 <Text>
+                     注册
+                 </Text>
                 <TextInput style={styles.textInputStyle} 
                     onChangeText={(username)=>this.setState({username})}
                     value={this.state.username}
                     placeholder={'请输入用户名(admin)'}/>
                 <TextInput style={styles.textInputStyle} 
-                    onChangeText={(password)=>this.setState({password,flag:true})}
+                    onChangeText={(password)=>this.setState({password,_flag:true})}
                     value={this.state.password}
                     secureTextEntry ={true}
                      placeholder={'请输入密码(admin)'}/>
                 <TextInput style={styles.textInputStyle} 
                     onChangeText={
+
                         (Apassword)=>{
+                            if(this.state._Aflag == false)
+                                this.state._Aflag = true;
                         if (Apassword == this.state.password) 
                             Same = true;
                         else
-                            Same =false;
+                            {Same =false;}
                         this.setState({Apassword,isSame:Same}) 
                     } }
                     value={this.state.Apassword}
                     secureTextEntry ={true}
                     placeholder={'请再次输入密码(admin)'}/>
-                {
-                    this.state.flag == false ? 
-                    this.state.isSame ? 
+                { //看实际效果理解，不行可以自己删除
+                    this.state._flag == true ?
+                    this.state._Aflag == true ?
+                    this.state.isSame == true ?
+                    <View></View>
+                    :
                     <View>
-                        <Text>请输入第二次密码</Text>
+                        <Text>两次密码输入不同</Text>
                     </View>
                     :
                     <View>
+                        <Text>请输入第二次密码</Text>
                     </View>
                     :<View>
-                        <Text>两次密码输入不同</Text>
                     </View>
                 }
-                
+                <RadioModal
+                    onValueChange={(id,item) => {
+                        this.setState({Sex:item})
+                    }}
+                    style = {{ 
+                        flexDirection:'row',
+                        flexWrap:'wrap',
+                        justifyContent: 'center',
+                        alignItems:'center',
+                        backgroundColor:'#ffffff',padding:5,marginTop:10,marginBottom:10
+				    }} 
+                    >
+                     <Text value="0" >男</Text>
+                    <Text value="1" >女</Text>
+                </RadioModal>
 
                 <TextInput style={styles.textInputStyle} 
                     onChangeText={(PhoneNumber)=>this.setState({PhoneNumber})}

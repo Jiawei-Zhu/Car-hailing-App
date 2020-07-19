@@ -196,7 +196,11 @@ export default class HomeScreen extends React.Component {
               city: json.regeocode.addressComponent.city,
               province: json.regeocode.addressComponent.province,
               latitude: latitude,
-              longitude: longitude
+              longitude: longitude,
+              Nowlongitude: longitude,
+              Nowlatitude: latitude,
+              NowLocation: json.regeocode.formatted_address,
+              
             })
           }).catch((error) => {
             console.log('request failed', error)
@@ -269,29 +273,29 @@ export default class HomeScreen extends React.Component {
   }
 
   NowLocationChange = ({ nativeEvent }) => {
-    if(this.state.poslock) return 0
-    const longitude = nativeEvent.longitude;
-    const latitude = nativeEvent.latitude;
-    if (this.state.searched == true) this.setState({ test: false }) //暂时弃用搜索标记
-    else if (nativeEvent.longitude != this.state.Nowlongitude || nativeEvent.Nowlatitude != this.state.latitude) {
-      this.setState({
-        Nowlongitude: nativeEvent.longitude,
-        Nowlatitude: nativeEvent.latitude,
-      }, () => {
-        fetch("https://restapi.amap.com/v3/geocode/regeo?key=4df0ef52b83b532834ffa118afa77de5&location=" + longitude + "," + latitude + "&poitype=城市&radius=1000&extensions=all&batch=false&roadlevel=0")
-          .then(response => response.json())
-          .then(json => {
-            this.setState({
-              city: json.regeocode.addressComponent.city,
-              province: json.regeocode.addressComponent.province,
-              NowLocation: json.regeocode.formatted_address,
-            })
-          }).catch((error) => {
-            console.log('request failed', error)
-          })
-      })
-    }
-    this.CheckMap()
+    // if(this.state.poslock) return 0
+    // const longitude = nativeEvent.longitude;
+    // const latitude = nativeEvent.latitude;
+    // if (this.state.searched == true) this.setState({ test: false }) //暂时弃用搜索标记
+    // else if (nativeEvent.longitude != this.state.Nowlongitude || nativeEvent.Nowlatitude != this.state.latitude) {
+    //   this.setState({
+    //     Nowlongitude: nativeEvent.longitude,
+    //     Nowlatitude: nativeEvent.latitude,
+    //   }, () => {
+    //     fetch("https://restapi.amap.com/v3/geocode/regeo?key=4df0ef52b83b532834ffa118afa77de5&location=" + longitude + "," + latitude + "&poitype=城市&radius=1000&extensions=all&batch=false&roadlevel=0")
+    //       .then(response => response.json())
+    //       .then(json => {
+    //         this.setState({
+    //           city: json.regeocode.addressComponent.city,
+    //           province: json.regeocode.addressComponent.province,
+    //           NowLocation: json.regeocode.formatted_address,
+    //         })
+    //       }).catch((error) => {
+    //         console.log('request failed', error)
+    //       })
+    //   })
+    // }
+    // this.CheckMap()
   }
 
   _renderItem = ({ item }) =>
@@ -440,7 +444,7 @@ export default class HomeScreen extends React.Component {
           }
           this.setState({
             RouteGuide: this._routeline, PreRoutePointLatitude: this._routeline[0].latitude, PreRoutePointLongtitude: this._routeline[0].longitude,
-            NextRoutePointLatitude: this._routeline[1].latitude, NextRoutePointLongtitude: this._routeline[1].longitude, RouteCount: 0, test3: route_length
+            NextRoutePointLatitude: this._routeline[1].latitude, NextRoutePointLongtitude: this._routeline[1].longitude, RouteCount: 1, test3: route_length
           })
         }
         ).catch((error) => {
@@ -598,7 +602,8 @@ export default class HomeScreen extends React.Component {
     //   this.setState({loop:'wait'})
     //   return 0
     // }
-    this._MoveFlag = true
+    if (this._MoveFlag == false)
+      return;
     var route = this.state.RouteGuide
     var count = this.state.RouteCount
     var PrePoint = { latitude: this.state.PreRoutePointLatitude, longitude: this.state.PreRoutePointLongtitude }
@@ -627,15 +632,22 @@ export default class HomeScreen extends React.Component {
           alert('test')
           PrePoint = NextPoint
           NextPoint = route[count++]
+          
         }
-        if (this.getGreatCircleDistance(this.state.Driverlatitude,this.state.Driverlongitude,this.state.Togolatitude,this.state.Togolongitude) < 500) {
+        if (this.getGreatCircleDistance(this.state.Driverlatitude,this.state.Driverlongitude,this.state.Togolatitude,this.state.Togolongitude) < 150) {
           alert('行程结束')
+          this.setState({
+            RouteCount: 0, PreRoutePointLatitude: 0, PreRoutePointLongtitude: 0,
+            NextRoutePointLatitude: 0, NextRoutePointLongtitude: 0,RouteGuide:[]
+          })
+          this._MoveFlag = false
+          return 0
         }
         this.setState({
           RouteCount: count, PreRoutePointLatitude: PrePoint.latitude, PreRoutePointLongtitude: PrePoint.longitude,
           NextRoutePointLatitude: NextPoint.latitude, NextRoutePointLongtitude: NextPoint.longitude
         })
-        this._MoveFlag = false
+        
         return 1
       }
     } else //脱离则重新计算路线
@@ -646,7 +658,7 @@ export default class HomeScreen extends React.Component {
       this.RefreshDriverPosition(DriverNewPos)
       this.mapView.animateTo({ coordinate: DriverNewPos })
       this.setState({ Driverlatitude: DriverNewPos.latitude, Driverlongitude: DriverNewPos.longitude })
-      this._MoveFlag = false
+      
       return 0
     }
 
@@ -912,15 +924,15 @@ export default class HomeScreen extends React.Component {
               <TextInput style={sty.textInputStyle2} onChangeText={(input) => {this.setState({testinput1:input}) }} value={this.state.testinput1} placeholder={'latitude'}></TextInput>
               <TextInput style={sty.textInputStyle2} onChangeText={(input) => {this.setState({testinput2:input}) }} value={this.state.testinput2} placeholder={'longitude'}></TextInput>
               <TouchableOpacity style={{alignItems:'center',backgroundColor:'lightblue',height:20,width:40,borderRightWidth:1}} onPress={()=>{
-                let a=this.changeTwoDecimal(this.state.Driverlatitude)
-                let b =this.changeTwoDecimal(this.state.Driverlongitude)
-                this.setState({testinput1:a.toString(),testinput2:b.toString()})
-                let UserData = Storage.get("User")
-                console.log(UserData)
-              }
-                
+                  let a=this.changeTwoDecimal(this.state.Driverlatitude)
+                  let b =this.changeTwoDecimal(this.state.Driverlongitude)
+                  this.setState({testinput1:a.toString(),testinput2:b.toString()})
+                  let UserData = Storage.get("User")
+                  this._MoveFlag = true;
+                }
               }>
-              <Text>更新</Text></TouchableOpacity>
+                  <Text>更新</Text>
+              </TouchableOpacity>
               <TouchableOpacity style={{alignItems:'center',backgroundColor:'lightblue',height:20,width:40}} onPress={()=>{this.DriverMoveTest()}}><Text>提交</Text></TouchableOpacity>
             </View>
             <View style={{alignContent:'center',flexDirection: 'row',height:15}}>
