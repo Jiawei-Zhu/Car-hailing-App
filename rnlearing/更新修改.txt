@@ -3,3 +3,7 @@
     在页面import xxx from './gobal/DeviceStorage' 
     使用xxx.save(key,data) 来保存data数据
     使用xxx.get(ket) 来获取ket所对应的信息
+
+07/19 完成注册页面的功能（样式没搞好），简单优化导航函数
+    注册页面中新引入一个单选框的组件
+    导航优化Pre和Next的生成，与终点的距离判断，使用无用字段_MoveFlag来控制整个导航流程的开始和结束
