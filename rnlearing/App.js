@@ -21,8 +21,9 @@ import OrderFormScreen from './component/OrderForm'
 import storage from './component/global/storage'
 import RegisterSearch from './component/Register'
 import {TabAppNavigator}  from './component/TabNavigation'
-
-
+import Storage from './component/global/DeviceStorage'
+import LogoutScreen from './component/Logout'
+import {DeviceEventEmitter} from 'react-native'
 global.storage = storage;
 const HomeNavigator =createStackNavigator(
   {
@@ -36,13 +37,26 @@ const LoginNavigator =createStackNavigator(
     Register:RegisterSearch
   }
 )
-const AppNavigator = createDrawerNavigator({
+var Login = {
+  Login:{
+  screen: LoginNavigator,
+  navigationOptions: ({navigation}) => ({header: null})
+}}
+
+var Message = {
+  Message:{
+  screen:MessageScreen,
+}}
+
+var Logout = {
+  Logout:{
+    screen:LogoutScreen
+  }
+}
+
+var DNavigation = {
   Home: {
     screen:HomeNavigator,
-    navigationOptions: ({navigation}) => ({header: null})
-  },
-  Login: {
-    screen: LoginNavigator,
     navigationOptions: ({navigation}) => ({header: null})
   },
   Main: {
@@ -51,35 +65,97 @@ const AppNavigator = createDrawerNavigator({
   OrderFrom:{
     screen:OrderFormScreen,
   },
-  Message: {
-    screen:MessageScreen,
-  },
   Test:{
     screen:Search,
   }
-  // Search:{
-  //   screen:Search
-  // }
-}, {
-  initialRouteName: 'Home',
-  headerMode: 'screen'  ,
-  hideStatusBar: true,
-  drawerWidth:200,
-  drawerBackgroundColor: 'rgba(255,255,255,.9)',
-  drawerType:'front',
-  hideStatusBar:false,
-  overlayColor: 'rgba(135, 206, 250,.4)',
-  contentOptions: {
-  activeTintColor: '#fff',
-  activeBackgroundColor: '#87CEFA',
+}
 
-  },
-})
 
-const AppContainer = createAppContainer(AppNavigator);
+function createNavigator( object ){
+  return  createDrawerNavigator(
+    object
+  , {
+    initialRouteName: 'Home',
+    headerMode: 'screen'  ,
+    hideStatusBar: true,
+    drawerWidth:200,
+    drawerBackgroundColor: 'rgba(255,255,255,.9)',
+    drawerType:'front',
+    hideStatusBar:false,
+    overlayColor: 'rgba(135, 206, 250,.4)',
+    contentOptions: {
+    activeTintColor: '#fff',
+    activeBackgroundColor: '#87CEFA',
+  
+    },
+  })
+}
+
+AppNavigator = createNavigator(DNavigation)
+AppContainer1 = createAppContainer(AppNavigator); 
+
 
 export default class App extends React.Component {
-  render() {
+  constructor(props){
+    super(props)
+    this.state={
+      temp:DNavigation,
+      DNavigation:{},
+      AppContainer:AppContainer1,
+      Mode:{},
+    }
+}
+
+RefreshNavigator(){
+  let Login1 = Login
+  let Message1 = Message
+  let Logout1= Logout
+  Storage.get("User").then((data)=>{
+    if(data !=null && data.token!=null)//代表已经登录
+      { 
+        let temp = {}
+        Object.assign(temp,Message1,Logout1)
+        this.setState({Mode:temp}) 
+      }
+    else 
+      this.setState({Mode:Login1})
+
+    let {Mode,DNavigation,temp} = this.state;
+    DNavigation = {}
+    Object.assign(DNavigation,temp,Mode)
+    AppNavigator = createNavigator(DNavigation)
+    AppContainer1 = createAppContainer(AppNavigator); 
+    this.setState({AppContainer:AppContainer1})
+  })
+}
+
+componentDidMount(){
+  this.RefreshNavigator();
+  this.LogoutEvent = DeviceEventEmitter.addListener("Logout", ()=>{
+    this.RefreshNavigator();
+  });
+  this.LoginEvent = DeviceEventEmitter.addListener("Login", ()=>{
+    this.RefreshNavigator();
+  });
+}
+
+componentWillMount(){
+  
+}
+
+componentWillUpdate(){
+  // let {DNavigation,Mode} = this.state;
+  // Object.assign(DNavigation,Mode)
+  // AppNavigator = createNavigator(DNavigation)
+  // AppContainer1 = createAppContainer(AppNavigator);
+  // this.state.AppContainer = AppContainer1;
+}
+componentWillUnmount(){
+  this.LogoutEvent.remove();
+  this.LoginEvent.remove();
+}
+render() {
+  const {AppContainer} = this.state
     return <AppContainer />;
   }
 }

@@ -3,6 +3,7 @@ import {Text,Image,View,TextInput,StyleSheet,FlatList,Botton,TouchableOpacity } 
 import { createStackNavigator, createAppContainer } from 'react-navigation'
 import {Back} from './module/Back'
 import DeviceStorage from './global/DeviceStorage'
+import {DeviceEventEmitter} from 'react-native'
 //屏幕宽度
 var Dimensions = require('Dimensions');
 var {width,height} = Dimensions.get('window');
@@ -81,6 +82,7 @@ export default class LoginScreen extends Component{
               UserData.PhoneNumber = json.PhoneNumber
   
               DeviceStorage.save("User",UserData);
+              DeviceEventEmitter.emit("Login",null)
               this.props.navigation.navigate("Home")
         })
     }

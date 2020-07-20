@@ -4,13 +4,13 @@ import { createStackNavigator, createAppContainer } from 'react-navigation'
 import {Back} from './module/Back'
 import DeviceStorage from './global/DeviceStorage'
 import RadioModal from 'react-native-radio-master';
-
+import {DeviceEventEmitter} from 'react-native'
 //屏幕宽度
 var Dimensions = require('Dimensions');
 var {width,height} = Dimensions.get('window');
 var screenWidth = width;
 var UserData = {};
-export default class LoginScreen extends Component{
+export default class RegisterScreen extends Component{
     constructor(props){
         super(props)
         this.state={
@@ -90,6 +90,7 @@ export default class LoginScreen extends Component{
               UserData.PhoneNumber = json.PhoneNumber
               console.log(UserData)
               DeviceStorage.save("User",UserData);
+              DeviceEventEmitter.emit("Login",out)
               this.props.navigation.navigate("Home")
         })
     }
