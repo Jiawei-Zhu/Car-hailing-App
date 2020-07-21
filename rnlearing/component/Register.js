@@ -45,6 +45,8 @@ export default class RegisterScreen extends Component{
         .then(response => response.json())
         .then(json => {
             alert(json.message)
+            if(json.code == 103) //用户已存在
+                return;
             this.Login();
         })   
     }
@@ -89,9 +91,11 @@ export default class RegisterScreen extends Component{
               UserData.Status = json.Status
               UserData.PhoneNumber = json.PhoneNumber
               console.log(UserData)
-              DeviceStorage.save("User",UserData);
-              DeviceEventEmitter.emit("Login",out)
-              this.props.navigation.navigate("Home")
+              DeviceStorage.save("User",UserData).then(()=>{
+                DeviceEventEmitter.emit("Login",null)
+                this.props.navigation.navigate("Home")
+              });
+              
         })
     }
 

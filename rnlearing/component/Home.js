@@ -21,8 +21,8 @@ export default class HomeScreen extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      longitude: '', //现在位置逆地理编码中存储的经纬度和转化结果（可优化）
-      latitude: '',
+      longitude: 113.37459961711058, //现在位置逆地理编码中存储的经纬度和转化结果（可优化）
+      latitude: 23.047508654381208,
       city: '',
       province: '',
 
@@ -183,12 +183,22 @@ export default class HomeScreen extends React.Component {
     })
   }
 
-  Getcity()//更新当前位置
+  Getcity(nativeEvent)//更新当前位置
   {
-    this.GetLongitudeAndLatitude()
-      .then((posarr) => {
-        const longitude = posarr[0];
-        const latitude = posarr[1];
+    // this.GetLongitudeAndLatitude()
+    //   .then((posarr) => {
+    //     let longitude;
+    //     let latitude;
+        
+    //     longitude = posarr[0];
+    //     latitude = posarr[1];
+
+    //获取定位很长，在没获取的时候，不要进行下面操作
+        if (!nativeEvent.longitude)
+          return;
+        longitude = nativeEvent.longitude;
+        latitude = nativeEvent.latitude;
+        
         fetch("https://restapi.amap.com/v3/geocode/regeo?key=4df0ef52b83b532834ffa118afa77de5&location=" + longitude + "," + latitude + "&poitype=城市&radius=1000&extensions=all&batch=false&roadlevel=0")
           .then(response => response.json())
           .then(json => {
@@ -202,10 +212,11 @@ export default class HomeScreen extends React.Component {
               NowLocation: json.regeocode.formatted_address,
               
             })
-          }).catch((error) => {
-            console.log('request failed', error)
           })
-      })
+      //     }).catch((error) => {
+      //       console.log('request failed', error)
+      //     })
+      // })
   }
 
   _GetSearchValue(val) //搜索页面子传父用函数
@@ -216,11 +227,12 @@ export default class HomeScreen extends React.Component {
   }
 
   componentDidMount() {
-    this.setState({ counter: this.state.counter + 1 })
-    if (!this.state.monted) {
-      this.Getcity();
-      this.setState({ monted: true })
-    }
+    // this.setState({ counter: this.state.counter + 1 })
+    this.state.counter+1;
+    // if (!this.state.monted) {
+    // //  this.Getcity();
+    //   this.setState({ monted: true })
+    // }
   }
 
   //标识用函数
@@ -267,7 +279,11 @@ export default class HomeScreen extends React.Component {
   }
 
   _logLongPressEvent = ({ nativeEvent }) => this._log('onLongPress', nativeEvent)
-  _logLocationEvent = ({ nativeEvent }) => this._log('onLocation', nativeEvent)
+  _logLocationEvent = ({ nativeEvent }) => {
+    
+    if(!this.state.monted)
+      this.Getcity(nativeEvent)
+  }
   _logStatusChangeCompleteEvent = ({ nativeEvent }) => {
     this._log('onStatusChangeComplete', nativeEvent)
   }
@@ -666,24 +682,24 @@ export default class HomeScreen extends React.Component {
 
   }
 
-  Move()//司机位置更新调试用
-  {
-    let length = this.state.box
-    if (length != this.state.RouteGuide.length) {
-      let route = this.state.RouteGuide
-      let coord = route[length]
-      // alert(coord)
-      this.RefreshDriverPosition(coord)
-      this.mapView.animateTo({
-        coordinate: coord,
-      })
-      this.setState({ box: this.state.box + 1 })
-      return 1
-    } else {
-      alert("完成")
-      return 0
-    }
-  }
+  // Move()//司机位置更新调试用
+  // {
+  //   let length = this.state.box
+  //   if (length != this.state.RouteGuide.length) {
+  //     let route = this.state.RouteGuide
+  //     let coord = route[length]
+  //     // alert(coord)
+  //     this.RefreshDriverPosition(coord)
+  //     this.mapView.animateTo({
+  //       coordinate: coord,
+  //     })
+  //     this.setState({ box: this.state.box + 1 })
+  //     return 1
+  //   } else {
+  //     alert("完成")
+  //     return 0
+  //   }
+  // }
 
   // CMove()
   // {
@@ -837,7 +853,7 @@ export default class HomeScreen extends React.Component {
           zoomLevel={this.state.zoom}
           ref={ref => this.mapView = ref}
           locationEnabled
-          locationInterval={10000}
+          locationInterval={2000}
           distanceFilter={10}
           onPress={this._logPressEvent}
           onLongPress={this._logLongPressEvent}
