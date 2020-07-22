@@ -20,8 +20,7 @@ export default class RegisterScreen extends Component{
             PhoneNumber:'',
             Sex:'男',
             token:'',
-            logs:[],
-            _flag:false,//第一个密码框输入标识
+              _flag:false,//第一个密码框输入标识
             isSame:false,//两个密码是否相同标识
             _Aflag:false,//第二个密码框输入标识
         }
@@ -71,18 +70,6 @@ export default class RegisterScreen extends Component{
         fetch("https://www.kingdom174.work/Per_Information?token="+token)
         .then(res=>res.json())
         .then(json=>{
-            this.setState({
-                logs: [
-                  {
-                    UserID: json.UserID,
-                    Sex:json.Sex,
-                    Status:json.Status,
-                    PhoneNumber:json.PhoneNumber,
-                    
-                  },
-                  ...this.state.logs,
-                ],
-              })
               UserData.username = this.state.username
               UserData.password = this.state.password
               UserData.token = token
@@ -188,8 +175,8 @@ export default class RegisterScreen extends Component{
                     <Text style={styles.login} onPress={()=>{this.UserMessage()}}>Message</Text>
                     <Text style={styles.login} onPress={() => this.props.navigation.navigate('Home')}>ToHome</Text>
                 </View>
-                <FlatList style={styles.logs} data={this.state.logs} renderItem={this._renderItem}
-	        />
+
+
             </View>
         );
     }
@@ -203,15 +190,7 @@ const styles = StyleSheet.create({
     //    设置侧轴的对齐方式
         alignItems:'center',
     },
-     iconStyle:{
-         marginTop:50,
-         width:80,
-         height:80,
-         borderRadius:40,
-         borderWidth:2,
-         borderColor:'white',
-         marginBottom:30
-     },
+     
      textInputStyle:{
          height:38,
          width:screenWidth,
@@ -228,31 +207,6 @@ const styles = StyleSheet.create({
          justifyContent:"center",
          alignItems:'center',
          borderRadius:5
-     },
-     //无法登录和新用户样式
-     settingStyle:{
-         flexDirection:'row',
-         width:screenWidth * 0.9,
-         height:44,
-         alignItems:'center',
-  
-         justifyContent:'space-between'
-     },
-     // 其他登录方式
-     otherLoginStyle:{
-         flexDirection:'row',
-         justifyContent:'space-around',
-         alignItems:'center',
- 
-     // 绝对定位
-         position:'absolute',
-         bottom:10,
-     },
-     otherLoginIcon:{
-         width:50,
-         height:50,
-         borderRadius:25,
-         marginLeft:10,
      },
      back:{
         // flexDirection: 'row',
@@ -271,53 +225,4 @@ const styles = StyleSheet.create({
  });
  
  
- 
 
-const styles2=StyleSheet.create(
-    {
-        container:{
-            flex:1,
-            justifyContent:'center',
-            alignItems:'center',
-            backgroundColor:'white'
-        },
-        title:{
-            fontSize:40,
-            fontWeight:'bold',
-            marginBottom:20
-        },
-        input:{
-            fontSize: 20,
-            width: 300,
-            margin: 10,
-            borderBottomWidth: 1,
-            borderStyle: 'solid',
-            borderColor: '#841584',
-            padding: 5,
-            marginBottom:20
-        },
-        login:{
-            fontSize:24,
-            fontWeight:'bold',
-            color: 'white',
-            margin: 10,
-            backgroundColor: 'orange',
-            width: 150,
-            height: 50,
-            lineHeight: 50,
-            textAlign: 'center',
-   
-        },
-        logs: {
-            elevation: 8,
-            flex: 1,
-            backgroundColor: '#fff',
-          },
-          logText: {
-            paddingLeft: 15,
-            paddingRight: 15,
-            paddingTop: 10,
-            paddingBottom: 10,
-          },
-    }
-);
