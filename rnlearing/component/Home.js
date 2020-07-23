@@ -10,6 +10,9 @@ import { DriversPos } from './DriversPos.js'
 import { ScrollView } from 'react-native-gesture-handler';
 import Storage from './global/DeviceStorage'
 import OrderView from './module/HomeOrder'
+import WaitOrderView from './module/waitOrder'
+import StartOrderView from './module/StartOrader'
+
 var Dimensions = require('Dimensions');
 var { width, height } = Dimensions.get('window');
 var screenWidth = width;
@@ -42,9 +45,11 @@ export default class HomeScreen extends React.Component {
       PreRoutePointLongtitude: '',
       NextRoutePointLatitude: '',
       NextRoutePointLongtitude: '',
-      bottomHeight:new Animated.Value(positionViewHeigth),//控制底部窗口大小的变量，用于做动画
+      bottomHeight:new Animated.Value(orderViewHeight),//控制底部窗口大小的变量，用于做动画
       taxi_cost:100,//这次路程要花费多少钱
-      orderData:'',//用于发起订单要用的信息
+      orderData:'',//发起订单要用的信息
+      orderMode:2,//表示订单达到什么流程，0为选择一些基础信息，1等待司机，
+
 
       test1: 'null', //调试用四个变量
       test2: 'null',
@@ -58,6 +63,7 @@ export default class HomeScreen extends React.Component {
       testinput2: 'testinput2',
       bottommode:0,
       poslock:false,
+
       
 
       NowLocation: '当前位置', //文本框中内容
@@ -850,8 +856,8 @@ export default class HomeScreen extends React.Component {
     }
     else{
       const {Nowlatitude,Nowlongitude,Togolatitude,Togolongitude} = this.state
-      if(Togolatitude =='' || Togolongitude ==''){
-        alert("请选择目的地")
+      if(Togolatitude =='' || Togolongitude =='' || Nowlatitude=='' || Nowlongitude==''){
+        alert("请选择开始地点和目的地")
         return 
       }
       else{
@@ -864,6 +870,21 @@ export default class HomeScreen extends React.Component {
       bottommode:mode,
     })
     this._BottomAnimted(bottomHeight)
+  }
+
+  _startOrder(OrderData)
+  {
+    
+    let bottomHeight = positionViewHeigth ;
+    this._BottomAnimted(bottomHeight);
+    this.setState({orderMode:1})//订单mode设置为1,代表正在等待司机接单
+    //调用开始订单的的接口
+    //fecth
+
+
+  }
+  _cancelOrder(){
+    this.setState({orderMode:0,bottommode:0})
   }
 
   renderRow(){
@@ -982,31 +1003,37 @@ export default class HomeScreen extends React.Component {
           /> */}
         </MapView>
         {/* 底部菜单 */}
-        <Animated.View style={{...sty.bottom,height:this.state.bottomHeight} }>
-          <View style={sty.BotTop}>
-            <TouchableOpacity style={sty.Bottom1} onPress={()=>{this._BottomSwitch(0)}}><Text style={sty.fontSize}>现在</Text></TouchableOpacity>
-            <TouchableOpacity style={sty.Bottom1}  onPress={()=>{this._BottomSwitch(1)}}><Text style={sty.fontSize}>预约</Text></TouchableOpacity>
-            <TouchableOpacity style={sty.Bottom1}  onPress={()=>{this.setState({bottommode:1})}}><Text style={sty.fontSize}>调试</Text></TouchableOpacity>
-          </View>
-          {this.state.bottommode==0?
-            <View style={sty.NowAndToGo}>
-            <TouchableOpacity style={sty.Now}>
-              <View style={{ flex: 1 ,marginRight:5}}><Image style={{ width: 30, height: 30 }} source={require('../images/greenpoint.png')} /></View>
-              <View style={{ flex: 15, backgroundColor: 'white' }}>
-                <Text style={sty.textInputStyle} onPress={(event) => this.Postdata('Now')} key='Now'>{this.state.NowLocation}</Text>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity style={sty.Togo}>
-              <View style={{ flex: 1 ,marginRight:5}}><Image style={{ width: 30, height: 30 }} source={require('../images/orangepoint.png')} /></View>
-              <View style={{ flex: 15, backgroundColor: 'white' }}>
-                <Text style={sty.textInputStyle} onPress={(event) => this.Postdata('To')} key='To'>{this.state.Togo}</Text>
-              </View>
-            </TouchableOpacity>
-          </View>:
-          <OrderView data={this.state.orderData} >
 
-          </OrderView>
-         // 下面是调试
+        <Animated.View style={{...sty.bottom,height:this.state.bottomHeight} }>
+            {this.state.orderMode == 0 &&
+              <View style={{flex:1}}>
+                <View style={sty.BotTop}>
+                  <TouchableOpacity style={sty.Bottom1} onPress={()=>{this._BottomSwitch(0)}}><Text style={sty.fontSize}>现在</Text></TouchableOpacity>
+                  <TouchableOpacity style={sty.Bottom1}  onPress={()=>{this._BottomSwitch(1)}}><Text style={sty.fontSize}>预约</Text></TouchableOpacity>
+                  <TouchableOpacity style={sty.Bottom1}  onPress={()=>{this.setState({bottommode:1})}}><Text style={sty.fontSize}>调试</Text></TouchableOpacity>
+                </View>
+                {this.state.bottommode==0?
+                  <View style={sty.NowAndToGo}>
+                  <TouchableOpacity style={sty.Now}>
+                    <View style={{ flex: 1 ,marginRight:5}}><Image style={{ width: 30, height: 30 }} source={require('../images/greenpoint.png')} /></View>
+                    <View style={{ flex: 15, backgroundColor: 'white' }}>
+                      <Text style={sty.textInputStyle} onPress={(event) => this.Postdata('Now')} key='Now'>{this.state.NowLocation}</Text>
+                    </View>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={sty.Togo}>
+                    <View style={{ flex: 1 ,marginRight:5}}><Image style={{ width: 30, height: 30 }} source={require('../images/orangepoint.png')} /></View>
+                    <View style={{ flex: 15, backgroundColor: 'white' }}>
+                      <Text style={sty.textInputStyle} onPress={(event) => this.Postdata('To')} key='To'>{this.state.Togo}</Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>:
+                <OrderView _startOrder={this._startOrder.bind(this)} data={this.state.orderData} />
+                }
+              </View>
+            }
+           { this.state.orderMode ==1 && <WaitOrderView _cancelOrder={this._cancelOrder.bind(this)} />}
+           { this.state.orderMode ==2 && <StartOrderView />}
+          { // 下面是调试
           // <View style={{flex:6,width:screenWidth - 80}}>
           //   <View style={sty.debug}>
           //     <Text>目标位置:{this.changeTwoDecimal(this.state.Togolatitude*1)},{this.changeTwoDecimal(this.state.Togolongitude*1)},{this.changeTwoDecimal(this.state.RouteGuide.length*1)}</Text>
@@ -1042,8 +1069,12 @@ export default class HomeScreen extends React.Component {
           //     <TouchableOpacity style={{alignItems:'center',backgroundColor:'lightblue',width:30,heigth:15,borderRightWidth:1}} onPress={this._DriverRigh2}><Text>右2</Text></TouchableOpacity>
           //   </View>
           // </View>
-          }
+        }
+           
+          
+        
         </Animated.View>
+
         {/* 顶部菜单 */}
 
         <View style={sty.topcontianer}>

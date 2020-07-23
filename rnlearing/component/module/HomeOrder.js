@@ -10,12 +10,12 @@ var { width, height } = Dimensions.get('window');
 var screenWidth = width;
 
 //这个页面现在只针对一个类型的车辆选择
-export default class Mylist extends React.Component{
+export default class HomeOreder extends React.Component{
     constructor(props) {
         super(props)
         this.state = {
           ...this.props.data,
-          select:true
+          select:true,
         }
       }
       componentWillReceiveProps(){
@@ -35,8 +35,10 @@ export default class Mylist extends React.Component{
           alert("请登陆")
           return
         }
-        //提交订单 接口
-        console.log(this.props.data)
+        //这里可以根据这里的业务选择改变
+        this.props.data.mode =1;
+        //使用回调返回具体订单信息
+        this.props._startOrder(this.props.data)
 
       }
   
@@ -44,6 +46,7 @@ export default class Mylist extends React.Component{
      const {select} = this.state
       return (
           <View style={styles.container}>
+            
             <View style={styles.carChoice}>
               <ScrollView style={{flex:1,flexDirection:'row'}}>
                 <TouchableOpacity onPress={()=>{this.setState({select:!select});}}>
@@ -58,7 +61,7 @@ export default class Mylist extends React.Component{
             </View>
             <View style={styles.button}>
               <TouchableOpacity onPress={()=>{this.submitOrder()}}>
-                <Text>确定订单 </Text>
+                <Text >确定订单 </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -83,7 +86,7 @@ export default class Mylist extends React.Component{
       
       justifyContent:'center',
       alignItems:'center',
-      flex:1
+      flex:2
     },
     catLabel:{
       flexDirection:'row',
