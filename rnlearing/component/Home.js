@@ -929,7 +929,7 @@ export default class HomeScreen extends React.Component {
         qp = qp +1;
         if(qp == driverLine.length - 1)
          clearInterval(this.carHandle)
-    },1000)
+    },300)
     //这里开始倾听司机路程fetch
     
 
