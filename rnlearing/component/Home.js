@@ -12,6 +12,7 @@ import Storage from './global/DeviceStorage'
 import OrderView from './module/HomeOrder'
 import WaitOrderView from './module/waitOrder'
 import StartOrderView from './module/StartOrader'
+import {driverLine} from './global/data'
 
 var Dimensions = require('Dimensions');
 var { width, height } = Dimensions.get('window');
@@ -20,6 +21,9 @@ var screenWidth = width;
 //这两个变量为底部切换变换的高度
 var positionViewHeigth = 160;
 var orderViewHeight = 280;
+var porcessViewHeight = 190;
+
+var qp = 0;
 
 
 export default class HomeScreen extends React.Component {
@@ -45,10 +49,10 @@ export default class HomeScreen extends React.Component {
       PreRoutePointLongtitude: '',
       NextRoutePointLatitude: '',
       NextRoutePointLongtitude: '',
-      bottomHeight:new Animated.Value(orderViewHeight),//控制底部窗口大小的变量，用于做动画
-      taxi_cost:100,//这次路程要花费多少钱
-      orderData:'',//发起订单要用的信息
-      orderMode:2,//表示订单达到什么流程，0为选择一些基础信息，1等待司机，
+      bottomHeight:new Animated.Value(porcessViewHeight),//控制底部窗口大小的变量，用于做动画
+
+      orderData:{},//发起订单要用的信息
+      orderMode:0,//表示订单达到什么流程，0为选择一些基础信息，1等待司机，2司机接客，3司机送往目的地
 
 
       test1: 'null', //调试用四个变量
@@ -212,6 +216,7 @@ export default class HomeScreen extends React.Component {
           return;
         longitude = nativeEvent.longitude;
         latitude = nativeEvent.latitude;
+
         this.state.monted =false
         fetch("https://restapi.amap.com/v3/geocode/regeo?key=4df0ef52b83b532834ffa118afa77de5&location=" + longitude + "," + latitude + "&poitype=城市&radius=1000&extensions=all&batch=false&roadlevel=0")
           .then(response => response.json())
@@ -246,6 +251,10 @@ export default class HomeScreen extends React.Component {
     Storage.get("User").then((data)=>{
       this.setState({UserData:data})
      })
+
+     alert("当前流程基本做好，由于没接口只有一条路线能用，请点击调试自动设置好开始和目的地")
+
+    
     // if (!this.state.monted) {
     // //  this.Getcity();
     //   this.setState({ monted: true })
@@ -276,10 +285,15 @@ export default class HomeScreen extends React.Component {
     this._log('onPress', nativeEvent)
     const longitude = nativeEvent.longitude;
     const latitude = nativeEvent.latitude;
+    
     if (nativeEvent.longitude != this.state.Togolongitude && nativeEvent.latitude != this.state.Togolatitude) {
       this.setState({
-        Togolongitude: nativeEvent.longitude,
-        Togolatitude: nativeEvent.latitude,
+       Togolongitude: nativeEvent.longitude,
+       Togolatitude: nativeEvent.latitude,
+    // Togolongitude: "113.3705371595053",
+    // Togolatitude: "23.049572378446946",
+    // Nowlatitude:'23.04760968157078',
+    // Nowlongitude:'113.37458860914228'
       }, () => {
         fetch("https://restapi.amap.com/v3/geocode/regeo?key=4df0ef52b83b532834ffa118afa77de5&location=" + longitude + "," + latitude + "&poitype=城市&radius=1000&extensions=all&batch=false&roadlevel=0")
           .then(response => response.json())
@@ -297,7 +311,7 @@ export default class HomeScreen extends React.Component {
 
   _logLongPressEvent = ({ nativeEvent }) => this._log('onLongPress', nativeEvent)
   _logLocationEvent = ({ nativeEvent }) => {
-    
+   
     if(this.state.monted)
       this.Getcity(nativeEvent)
   }
@@ -441,20 +455,20 @@ export default class HomeScreen extends React.Component {
       let taxi_cost = 0;
       let NowLocation = {
         Nowlatitude:this.state.Nowlatitude,
-        Nowlongitude:this.state.Nowlatitude
+        Nowlongitude:this.state.Togolongitude
       }
       let TogoLocation = {
         Togolatitude:this.state.Togolatitude,
         Togolongitude:this.state.Togolongitude
       }
-      var orderData = {
-        
-      }
+    
+      var {orderData} =  this.state
       //此处使用驾车导航api，还有步行公交骑行等
       fetch("https://restapi.amap.com/v3/direction/driving?key=4df0ef52b83b532834ffa118afa77de5&origin=" + Fromlongitide + "," + Fromlatitude + "&destination=" + Tolongitude + "," + Tolatitude + "&originid=&destinationid=&extensions=all&strategy=0&waypoints=&avoidpolygons=&avoidroad=")
         .then(response => response.json())
         .then(json => {
-          taxi_cost = json.route.taxi_cost
+          if(json.route.taxi_cost!=null)
+            taxi_cost = json.route.taxi_cost
           for (var a = 0; a < json.route.paths[0].steps.length; a++) {
             this.setState({ temp: json.route.paths[0].steps[a].polyline })//此处默认选择推荐路线，可优化
             const def = String(this.state.temp).split(';') //将原始数据按分号隔开，每组为latitude，longitude
@@ -464,6 +478,8 @@ export default class HomeScreen extends React.Component {
               const temp = String(def[i]).split(",") //再次分割，0为latitude,1为longitude
               this._routeline[route_length].latitude = temp[1] * 1
               this._routeline[route_length].longitude = temp[0] * 1
+              //console.log(this._routeline[route_length])
+
               route_length++
               this.setState({ test3: def.length })//用于确认temp确实读到值了
             }
@@ -487,16 +503,18 @@ export default class HomeScreen extends React.Component {
             //   },
             // ]
           }
-          orderData = {
-            UserData:this.state.UserData,
-            NowLocation:NowLocation,
-            TogoLocation:TogoLocation,
-            taxi_cost:taxi_cost
+          if(this.state.orderMode==0)
+          {
+            orderData.UserData= this.state.UserData,
+            orderData.NowLocation=NowLocation,
+            orderData.TogoLocation=TogoLocation,
+            orderData.taxi_cost=taxi_cost
           }
+         
           this.setState({
             RouteGuide: this._routeline, PreRoutePointLatitude: this._routeline[0].latitude, PreRoutePointLongtitude: this._routeline[0].longitude,
             NextRoutePointLatitude: this._routeline[1].latitude, NextRoutePointLongtitude: this._routeline[1].longitude, RouteCount: 1, test3: route_length,
-            taxi_cost:taxi_cost,orderData:orderData
+            orderData:orderData
           })
         }
         ).catch((error) => {
@@ -524,6 +542,7 @@ export default class HomeScreen extends React.Component {
               const temp = String(def[i]).split(",") //再次分割，0为latitude,1为longitude
               this._routeline[route_length].latitude = temp[1] * 1
               this._routeline[route_length].longitude = temp[0] * 1
+              console.log(this._routeline[route_length])
               route_length++
               convert - webside
               this.setState({ test3: def.length })//用于确认temp确实读到值了
@@ -654,8 +673,8 @@ export default class HomeScreen extends React.Component {
     //   this.setState({loop:'wait'})
     //   return 0
     // }
-    if (this._MoveFlag == false)
-      return;
+    // if (this._MoveFlag == false)
+    //   return;
     var route = this.state.RouteGuide
     var count = this.state.RouteCount
     var PrePoint = { latitude: this.state.PreRoutePointLatitude, longitude: this.state.PreRoutePointLongtitude }
@@ -666,7 +685,7 @@ export default class HomeScreen extends React.Component {
     //先判断新位置是否脱离路线
     var min = this.FlatPointToLine(PrePoint.latitude, PrePoint.longitude, NextPoint.latitude, NextPoint.longitude, DriverNewPos.latitude, DriverNewPos.longitude)
     this.setState({ test4: min })
-    if (min < 500) //未脱离则单次移动动画，并计算新位置到两个点的距离，如果里离下一个点的距离小于离上一个点的距离
+    if (min < 100) //未脱离则单次移动动画，并计算新位置到两个点的距离，如果里离下一个点的距离小于离上一个点的距离
     {
       //如果单次移动距离大于三十米处理直到两个点距离小于30m，暂时取消
       this.setState({loop:'loop1'})
@@ -681,16 +700,33 @@ export default class HomeScreen extends React.Component {
         NextPoint = route[count++]
         while((PrePoint.longitude==NextPoint.longitude)&&(PrePoint.latitude==NextPoint.latitude))
         {
-          alert('test')
           PrePoint = NextPoint
-          NextPoint = route[count++]
-          
+          NextPoint = route[count++] 
         }
-        if (this.getGreatCircleDistance(this.state.Driverlatitude,this.state.Driverlongitude,this.state.Togolatitude,this.state.Togolongitude) < 150) {
-          alert('行程结束')
-          this._clearRoute();
-          this._MoveFlag = false
+   
+        if ((this.getGreatCircleDistance(this.state.Driverlatitude,this.state.Driverlongitude,this.state.Togolatitude,this.state.Togolongitude) < 150
+        )&&  (this.state.orderMode == 3)) {
+          
+            alert('行程结束')
+            this._clearRoute();
+            this.setState({
+              Driverlatitude:'',
+              Driverlongitude:'',
+              orderMode:4,//付款页面去了
+              Togolatitude:'',
+              Togolongitude:'',
+              Nowlatitude:this.state.orderData.NowLocation.Nowlatitude,
+              Nowlongitude:this.state.orderData.NowLocation.Nowlongitude,
+            })
+          // this._MoveFlag = false
           return 0
+        }
+        if((this.getGreatCircleDistance(this.state.Driverlatitude,this.state.Driverlongitude,this.state.Nowlatitude,this.state.Nowlongitude) < 150 
+        )&& (this.state.orderMode==2))
+        { 
+          alert('接到客人')
+          this.Route(this.state.Driverlatitude,this.state.Driverlongitude,this.state.orderData.TogoLocation.Togolatitude,this.state.orderData.TogoLocation.Togolongitude)
+          this.setState({orderMode:3,Nowlatitude:'',Nowlongitude:''})
         }
         this.setState({
           RouteCount: count, PreRoutePointLatitude: PrePoint.latitude, PreRoutePointLongtitude: PrePoint.longitude,
@@ -702,8 +738,12 @@ export default class HomeScreen extends React.Component {
     } else //脱离则重新计算路线
     {
       this.setState({loop:'loop2'})
-      this.Route(this.state.Driverlatitude, this.state.Driverlongitude, this.state.Togolatitude, this.state.Togolongitude)
-      //需要加一个锁，使得路径更新完成时才能输入新的坐标 完成
+      if(this.state.orderMode ==2)
+        this.Route(this.state.Driverlatitude, this.state.Driverlongitude, this.state.orderData.NowLocation.Nowlatitude, this.state.orderData.NowLocation.Nowlongitude)
+      else if(this.state.orderMode ==3)
+        this.Route(this.state.Driverlatitude, this.state.Driverlongitude, this.state.Togolatitude, this.state.Togolongitude)
+
+        //需要加一个锁，使得路径更新完成时才能输入新的坐标 完成
       this.RefreshDriverPosition(DriverNewPos)
       this.mapView.animateTo({ coordinate: DriverNewPos })
       this.setState({ Driverlatitude: DriverNewPos.latitude, Driverlongitude: DriverNewPos.longitude })
@@ -872,6 +912,28 @@ export default class HomeScreen extends React.Component {
     this._BottomAnimted(bottomHeight)
   }
 
+  _orderProcess(orderData){
+
+  
+    this.setState({orderMode:2,orderData:orderData,})
+    this._clearRoute()
+    this.Route(orderData.DriverData.Driverlatitude,orderData.DriverData.Driverlongitude,orderData.NowLocation.Nowlatitude,orderData.NowLocation.Nowlongitude)
+    this._BottomAnimted(porcessViewHeight)
+    //这里模拟间隔1s接受司机的位置
+    console.log(driverLine)
+    this.carHandle = setInterval(()=>{
+     
+        let posi = {latitude:driverLine[qp].latitude,longitude:driverLine[qp].longitude}
+        console.log(posi)
+        this.DriverMove(posi)
+        qp = qp +1;
+        if(qp == driverLine.length - 1)
+         clearInterval(this.carHandle)
+    },1000)
+    //这里开始倾听司机路程fetch
+    
+
+  }
   _startOrder(OrderData)
   {
     
@@ -880,9 +942,50 @@ export default class HomeScreen extends React.Component {
     this.setState({orderMode:1})//订单mode设置为1,代表正在等待司机接单
     //调用开始订单的的接口
     //fecth
+    //用于演示的当前位置和目的位置
+    //la23.04760968157078,lo113.37458860914228
+    //23.049572378446946,113.3705371595053
+    const orderId = '002';
+ 
+    const DriverData = {
+      name:"李旭彬",
+      driverId:15,
+      carNumber:"粤666666",
+      carType:'白色奔驰',
+      Driverlatitude: '23.0526',
+      Driverlongitude: '113.3955',
+    }
+    OrderData.orderId = orderId
+    OrderData.DriverData = DriverData 
+    console.log(OrderData)
 
+    this._orderProcess(OrderData)
+    
+    //模拟数据
+    
+ 
 
   }
+  _Test(){
+
+    let Now={
+      latitude:'23.04760968157078',
+      longitude:'113.37458860914228'
+    }
+    let To={
+      nativeEvent:{
+        latitude:"23.049572378446946",
+        longitude: "113.3705371595053"
+      }
+    }
+    this.Getcity(Now)
+    this._logPressEvent(To)
+
+
+    alert("设置基本坐标完成")
+    
+  }
+  
   _cancelOrder(){
     this.setState({orderMode:0,bottommode:0})
   }
@@ -1010,7 +1113,7 @@ export default class HomeScreen extends React.Component {
                 <View style={sty.BotTop}>
                   <TouchableOpacity style={sty.Bottom1} onPress={()=>{this._BottomSwitch(0)}}><Text style={sty.fontSize}>现在</Text></TouchableOpacity>
                   <TouchableOpacity style={sty.Bottom1}  onPress={()=>{this._BottomSwitch(1)}}><Text style={sty.fontSize}>预约</Text></TouchableOpacity>
-                  <TouchableOpacity style={sty.Bottom1}  onPress={()=>{this.setState({bottommode:1})}}><Text style={sty.fontSize}>调试</Text></TouchableOpacity>
+                  <TouchableOpacity style={sty.Bottom1}  onPress={()=>{this._Test()}}><Text style={sty.fontSize}>调试</Text></TouchableOpacity>
                 </View>
                 {this.state.bottommode==0?
                   <View style={sty.NowAndToGo}>
@@ -1032,7 +1135,7 @@ export default class HomeScreen extends React.Component {
               </View>
             }
            { this.state.orderMode ==1 && <WaitOrderView _cancelOrder={this._cancelOrder.bind(this)} />}
-           { this.state.orderMode ==2 && <StartOrderView />}
+           { (this.state.orderMode ==2 || this.state.orderMode==3) && <StartOrderView _cancelOrder={this._cancelOrder.bind(this)}  data={this.state.orderData}/>}
           { // 下面是调试
           // <View style={{flex:6,width:screenWidth - 80}}>
           //   <View style={sty.debug}>
