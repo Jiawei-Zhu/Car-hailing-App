@@ -285,7 +285,10 @@ export default class HomeScreen extends React.Component {
     this._log('onPress', nativeEvent)
     const longitude = nativeEvent.longitude;
     const latitude = nativeEvent.latitude;
-    
+    if(this.state.orderMode==2||this.state.orderMode==3,this.state.orderMode==4)//进入后续流程不允许改终点
+      return
+    if(this.state.bottommode==1)//在预约界面，地图动态划线
+        this.Route(this.state.Nowlatitude,this.state.Nowlongitude,latitude,longitude)
     if (nativeEvent.longitude != this.state.Togolongitude && nativeEvent.latitude != this.state.Togolatitude) {
       this.setState({
        Togolongitude: nativeEvent.longitude,
@@ -915,12 +918,12 @@ export default class HomeScreen extends React.Component {
   _orderProcess(orderData){
 
   
-    this.setState({orderMode:2,orderData:orderData,})
+    this.setState({orderMode:2,orderData:orderData,zoom:15})
     this._clearRoute()
     this.Route(orderData.DriverData.Driverlatitude,orderData.DriverData.Driverlongitude,orderData.NowLocation.Nowlatitude,orderData.NowLocation.Nowlongitude)
     this._BottomAnimted(porcessViewHeight)
     //这里模拟间隔1s接受司机的位置
-    console.log(driverLine)
+    
     this.carHandle = setInterval(()=>{
      
         let posi = {latitude:driverLine[qp].latitude,longitude:driverLine[qp].longitude}
@@ -929,7 +932,7 @@ export default class HomeScreen extends React.Component {
         qp = qp +1;
         if(qp == driverLine.length - 1)
          clearInterval(this.carHandle)
-    },300)
+    },500)
     //这里开始倾听司机路程fetch
     
 
