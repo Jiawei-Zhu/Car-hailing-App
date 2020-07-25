@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import {Animated, Text, View, Image, TextInput, StyleSheet, TouchableOpacity, Button, FlatList, Alert, NativeMethodsMixin } from 'react-native';
+import { Animated, Text, View, Image, TextInput, StyleSheet, TouchableOpacity, Button, FlatList, Alert, NativeMethodsMixin } from 'react-native';
 import { MapView } from 'react-native-amap3d'
 // import Button from 'antd-mobile-rn/lib/button'
 import PropTypes from "prop-types";
@@ -12,7 +12,8 @@ import Storage from './global/DeviceStorage'
 import OrderView from './module/HomeOrder'
 import WaitOrderView from './module/waitOrder'
 import StartOrderView from './module/StartOrader'
-import {driverLine} from './global/data'
+import PayModeView from './module/PayMode'
+import { driverLine } from './global/data'
 
 var Dimensions = require('Dimensions');
 var { width, height } = Dimensions.get('window');
@@ -49,26 +50,26 @@ export default class HomeScreen extends React.Component {
       PreRoutePointLongtitude: '',
       NextRoutePointLatitude: '',
       NextRoutePointLongtitude: '',
-      bottomHeight:new Animated.Value(porcessViewHeight),//控制底部窗口大小的变量，用于做动画
+      bottomHeight: new Animated.Value(porcessViewHeight),//控制底部窗口大小的变量，用于做动画
 
-      orderData:{},//发起订单要用的信息
-      orderMode:0,//表示订单达到什么流程，0为选择一些基础信息，1等待司机，2司机接客，3司机送往目的地
+      orderData: {},//发起订单要用的信息
+      orderMode: 0,//表示订单达到什么流程，0为选择一些基础信息，1等待司机，2司机接客，3司机送往目的地
 
 
       test1: 'null', //调试用四个变量
       test2: 'null',
       test3: 'null',
       test4: 'min',
-      dis1:'',
-      dis2:'',
-      loop:' ',
+      dis1: '',
+      dis2: '',
+      loop: ' ',
       testlog: [1, 2, 3, 4],
       testinput1: 'testinput1',
       testinput2: 'testinput2',
-      bottommode:0,
-      poslock:false,
+      bottommode: 0,
+      poslock: false,
 
-      
+
 
       NowLocation: '当前位置', //文本框中内容
       Togo: '我想去',
@@ -207,35 +208,35 @@ export default class HomeScreen extends React.Component {
     //   .then((posarr) => {
     //     let longitude;
     //     let latitude;
-        
+
     //     longitude = posarr[0];
     //     latitude = posarr[1];
 
     //获取定位很长，在没获取的时候，不要进行下面操作
-        if (!nativeEvent.longitude)
-          return;
-        longitude = nativeEvent.longitude;
-        latitude = nativeEvent.latitude;
+    if (!nativeEvent.longitude)
+      return;
+    longitude = nativeEvent.longitude;
+    latitude = nativeEvent.latitude;
 
-        this.state.monted =false
-        fetch("https://restapi.amap.com/v3/geocode/regeo?key=4df0ef52b83b532834ffa118afa77de5&location=" + longitude + "," + latitude + "&poitype=城市&radius=1000&extensions=all&batch=false&roadlevel=0")
-          .then(response => response.json())
-          .then(json => {
-            this.setState({
-              city: json.regeocode.addressComponent.city,
-              province: json.regeocode.addressComponent.province,
-              latitude: latitude,
-              longitude: longitude,
-              Nowlongitude: longitude,
-              Nowlatitude: latitude,
-              NowLocation: json.regeocode.formatted_address,
-              
-            })
-          })
-      //     }).catch((error) => {
-      //       console.log('request failed', error)
-      //     })
-      // })
+    this.state.monted = false
+    fetch("https://restapi.amap.com/v3/geocode/regeo?key=4df0ef52b83b532834ffa118afa77de5&location=" + longitude + "," + latitude + "&poitype=城市&radius=1000&extensions=all&batch=false&roadlevel=0")
+      .then(response => response.json())
+      .then(json => {
+        this.setState({
+          city: json.regeocode.addressComponent.city,
+          province: json.regeocode.addressComponent.province,
+          latitude: latitude,
+          longitude: longitude,
+          Nowlongitude: longitude,
+          Nowlatitude: latitude,
+          NowLocation: json.regeocode.formatted_address,
+
+        })
+      })
+    //     }).catch((error) => {
+    //       console.log('request failed', error)
+    //     })
+    // })
   }
 
   _GetSearchValue(val) //搜索页面子传父用函数
@@ -247,14 +248,14 @@ export default class HomeScreen extends React.Component {
 
   componentDidMount() {
     // this.setState({ counter: this.state.counter + 1 })
-    this.state.counter+1;
-    Storage.get("User").then((data)=>{
-      this.setState({UserData:data})
-     })
+    this.state.counter + 1;
+    Storage.get("User").then((data) => {
+      this.setState({ UserData: data })
+    })
 
-     alert("当前流程基本做好，由于没接口只有一条路线能用，请点击调试自动设置好开始和目的地")
+    alert("当前流程基本做好，由于没接口只有一条路线能用，请点击调试自动设置好开始和目的地")
 
-    
+
     // if (!this.state.monted) {
     // //  this.Getcity();
     //   this.setState({ monted: true })
@@ -285,18 +286,18 @@ export default class HomeScreen extends React.Component {
     this._log('onPress', nativeEvent)
     const longitude = nativeEvent.longitude;
     const latitude = nativeEvent.latitude;
-    if(this.state.orderMode==2||this.state.orderMode==3,this.state.orderMode==4)//进入后续流程不允许改终点
+    if (this.state.orderMode == 2 || this.state.orderMode == 3, this.state.orderMode == 4)//进入后续流程不允许改终点
       return
-    if(this.state.bottommode==1)//在预约界面，地图动态划线
-        this.Route(this.state.Nowlatitude,this.state.Nowlongitude,latitude,longitude)
+    if (this.state.bottommode == 1)//在预约界面，地图动态划线
+      this.Route(this.state.Nowlatitude, this.state.Nowlongitude, latitude, longitude)
     if (nativeEvent.longitude != this.state.Togolongitude && nativeEvent.latitude != this.state.Togolatitude) {
       this.setState({
-       Togolongitude: nativeEvent.longitude,
-       Togolatitude: nativeEvent.latitude,
-    // Togolongitude: "113.3705371595053",
-    // Togolatitude: "23.049572378446946",
-    // Nowlatitude:'23.04760968157078',
-    // Nowlongitude:'113.37458860914228'
+        Togolongitude: nativeEvent.longitude,
+        Togolatitude: nativeEvent.latitude,
+        // Togolongitude: "113.3705371595053",
+        // Togolatitude: "23.049572378446946",
+        // Nowlatitude:'23.04760968157078',
+        // Nowlongitude:'113.37458860914228'
       }, () => {
         fetch("https://restapi.amap.com/v3/geocode/regeo?key=4df0ef52b83b532834ffa118afa77de5&location=" + longitude + "," + latitude + "&poitype=城市&radius=1000&extensions=all&batch=false&roadlevel=0")
           .then(response => response.json())
@@ -314,8 +315,8 @@ export default class HomeScreen extends React.Component {
 
   _logLongPressEvent = ({ nativeEvent }) => this._log('onLongPress', nativeEvent)
   _logLocationEvent = ({ nativeEvent }) => {
-   
-    if(this.state.monted)
+
+    if (this.state.monted)
       this.Getcity(nativeEvent)
   }
   _logStatusChangeCompleteEvent = ({ nativeEvent }) => {
@@ -457,20 +458,20 @@ export default class HomeScreen extends React.Component {
       var route_length = 0
       let taxi_cost = 0;
       let NowLocation = {
-        Nowlatitude:this.state.Nowlatitude,
-        Nowlongitude:this.state.Togolongitude
+        Nowlatitude: this.state.Nowlatitude,
+        Nowlongitude: this.state.Togolongitude
       }
       let TogoLocation = {
-        Togolatitude:this.state.Togolatitude,
-        Togolongitude:this.state.Togolongitude
+        Togolatitude: this.state.Togolatitude,
+        Togolongitude: this.state.Togolongitude
       }
-    
-      var {orderData} =  this.state
+
+      var { orderData } = this.state
       //此处使用驾车导航api，还有步行公交骑行等
       fetch("https://restapi.amap.com/v3/direction/driving?key=4df0ef52b83b532834ffa118afa77de5&origin=" + Fromlongitide + "," + Fromlatitude + "&destination=" + Tolongitude + "," + Tolatitude + "&originid=&destinationid=&extensions=all&strategy=0&waypoints=&avoidpolygons=&avoidroad=")
         .then(response => response.json())
         .then(json => {
-          if(json.route.taxi_cost!=null)
+          if (json.route.taxi_cost != null)
             taxi_cost = json.route.taxi_cost
           for (var a = 0; a < json.route.paths[0].steps.length; a++) {
             this.setState({ temp: json.route.paths[0].steps[a].polyline })//此处默认选择推荐路线，可优化
@@ -506,18 +507,17 @@ export default class HomeScreen extends React.Component {
             //   },
             // ]
           }
-          if(this.state.orderMode==0)
-          {
-            orderData.UserData= this.state.UserData,
-            orderData.NowLocation=NowLocation,
-            orderData.TogoLocation=TogoLocation,
-            orderData.taxi_cost=taxi_cost
+          if (this.state.orderMode == 0) {
+            orderData.UserData = this.state.UserData,
+              orderData.NowLocation = NowLocation,
+              orderData.TogoLocation = TogoLocation,
+              orderData.taxi_cost = taxi_cost
           }
-         
+
           this.setState({
             RouteGuide: this._routeline, PreRoutePointLatitude: this._routeline[0].latitude, PreRoutePointLongtitude: this._routeline[0].longitude,
             NextRoutePointLatitude: this._routeline[1].latitude, NextRoutePointLongtitude: this._routeline[1].longitude, RouteCount: 1, test3: route_length,
-            orderData:orderData
+            orderData: orderData
           })
         }
         ).catch((error) => {
@@ -684,73 +684,71 @@ export default class HomeScreen extends React.Component {
     var NextPoint = { latitude: this.state.NextRoutePointLatitude, longitude: this.state.NextRoutePointLongtitude }
     var DriverPos = { latitude: this.state.Driverlatitude, longitude: this.state.Driverlongitude }
     var temp = { latitude: 0, longitude: 0 }
-    this.setState({ DriversPosition2: DriverNewPos, ...this.state.DriversPosition2,poslock:true})
+    this.setState({ DriversPosition2: DriverNewPos, ...this.state.DriversPosition2, poslock: true })
     //先判断新位置是否脱离路线
     var min = this.FlatPointToLine(PrePoint.latitude, PrePoint.longitude, NextPoint.latitude, NextPoint.longitude, DriverNewPos.latitude, DriverNewPos.longitude)
     this.setState({ test4: min })
     if (min < 100) //未脱离则单次移动动画，并计算新位置到两个点的距离，如果里离下一个点的距离小于离上一个点的距离
     {
       //如果单次移动距离大于三十米处理直到两个点距离小于30m，暂时取消
-      this.setState({loop:'loop1'})
+      this.setState({ loop: 'loop1' })
       this.RefreshDriverPosition(DriverNewPos)
       this.mapView.animateTo({ coordinate: DriverNewPos })
       this.setState({ Driverlatitude: DriverNewPos.latitude, Driverlongitude: DriverNewPos.longitude })
       let dis1 = this.getGreatCircleDistance(PrePoint.latitude, PrePoint.longitude, DriverNewPos.latitude, DriverNewPos.longitude)
       let dis2 = this.getGreatCircleDistance(NextPoint.latitude, NextPoint.longitude, DriverNewPos.latitude, DriverNewPos.longitude)
-      this.setState({dis1:dis1,dis2:dis2})
+      this.setState({ dis1: dis1, dis2: dis2 })
       if (dis2 < dis1) {
         PrePoint = NextPoint
         NextPoint = route[count++]
-        while((PrePoint.longitude==NextPoint.longitude)&&(PrePoint.latitude==NextPoint.latitude))
-        {
+        while ((PrePoint.longitude == NextPoint.longitude) && (PrePoint.latitude == NextPoint.latitude)) {
           PrePoint = NextPoint
-          NextPoint = route[count++] 
+          NextPoint = route[count++]
         }
-   
-        if ((this.getGreatCircleDistance(this.state.Driverlatitude,this.state.Driverlongitude,this.state.Togolatitude,this.state.Togolongitude) < 150
-        )&&  (this.state.orderMode == 3)) {
-          
-            alert('行程结束')
-            this._clearRoute();
-            this.setState({
-              Driverlatitude:'',
-              Driverlongitude:'',
-              orderMode:4,//付款页面去了
-              Togolatitude:'',
-              Togolongitude:'',
-              Nowlatitude:this.state.orderData.NowLocation.Nowlatitude,
-              Nowlongitude:this.state.orderData.NowLocation.Nowlongitude,
-            })
+
+        if ((this.getGreatCircleDistance(this.state.Driverlatitude, this.state.Driverlongitude, this.state.Togolatitude, this.state.Togolongitude) < 150
+        ) && (this.state.orderMode == 3)) {
+
+          alert('行程结束')
+          this._clearRoute();
+          this.setState({
+            Driverlatitude: '',
+            Driverlongitude: '',
+            orderMode: 4,//付款页面去了
+            Togolatitude: '',
+            Togolongitude: '',
+            Nowlatitude: this.state.orderData.NowLocation.Nowlatitude,
+            Nowlongitude: this.state.orderData.NowLocation.Nowlongitude,
+          })
           // this._MoveFlag = false
           return 0
         }
-        if((this.getGreatCircleDistance(this.state.Driverlatitude,this.state.Driverlongitude,this.state.Nowlatitude,this.state.Nowlongitude) < 150 
-        )&& (this.state.orderMode==2))
-        { 
+        if ((this.getGreatCircleDistance(this.state.Driverlatitude, this.state.Driverlongitude, this.state.Nowlatitude, this.state.Nowlongitude) < 150
+        ) && (this.state.orderMode == 2)) {
           alert('接到客人')
-          this.Route(this.state.Driverlatitude,this.state.Driverlongitude,this.state.orderData.TogoLocation.Togolatitude,this.state.orderData.TogoLocation.Togolongitude)
-          this.setState({orderMode:3,Nowlatitude:'',Nowlongitude:''})
+          this.Route(this.state.Driverlatitude, this.state.Driverlongitude, this.state.orderData.TogoLocation.Togolatitude, this.state.orderData.TogoLocation.Togolongitude)
+          this.setState({ orderMode: 3, Nowlatitude: '', Nowlongitude: '' })
         }
         this.setState({
           RouteCount: count, PreRoutePointLatitude: PrePoint.latitude, PreRoutePointLongtitude: PrePoint.longitude,
           NextRoutePointLatitude: NextPoint.latitude, NextRoutePointLongtitude: NextPoint.longitude
         })
-        
+
         return 1
       }
     } else //脱离则重新计算路线
     {
-      this.setState({loop:'loop2'})
-      if(this.state.orderMode ==2)
+      this.setState({ loop: 'loop2' })
+      if (this.state.orderMode == 2)
         this.Route(this.state.Driverlatitude, this.state.Driverlongitude, this.state.orderData.NowLocation.Nowlatitude, this.state.orderData.NowLocation.Nowlongitude)
-      else if(this.state.orderMode ==3)
+      else if (this.state.orderMode == 3)
         this.Route(this.state.Driverlatitude, this.state.Driverlongitude, this.state.Togolatitude, this.state.Togolongitude)
 
-        //需要加一个锁，使得路径更新完成时才能输入新的坐标 完成
+      //需要加一个锁，使得路径更新完成时才能输入新的坐标 完成
       this.RefreshDriverPosition(DriverNewPos)
       this.mapView.animateTo({ coordinate: DriverNewPos })
       this.setState({ Driverlatitude: DriverNewPos.latitude, Driverlongitude: DriverNewPos.longitude })
-      
+
       return 0
     }
 
@@ -788,56 +786,54 @@ export default class HomeScreen extends React.Component {
   // }, 1000);
   //   }
 
- changeTwoDecimal(x)
-{
-   var f_x = parseFloat(x);
-   if (isNaN(f_x))
-   {
+  changeTwoDecimal(x) {
+    var f_x = parseFloat(x);
+    if (isNaN(f_x)) {
       alert('function:changeTwoDecimal->parameter error');
       return false;
-   }
-   f_x = Math.round(f_x *10000)/10000;
+    }
+    f_x = Math.round(f_x * 10000) / 10000;
 
-   return f_x;
-}
+    return f_x;
+  }
 
   _OpenDrawer = () => this.props.navigation.openDrawer()
 
-  DriverMoveTest(){
-    var data = { latitude: this.state.testinput1*1, longitude: this.state.testinput2*1}
+  DriverMoveTest() {
+    var data = { latitude: this.state.testinput1 * 1, longitude: this.state.testinput2 * 1 }
     this.DriverMove(data)
   }
 
   _DriverUp = () => {
-    var data = { latitude: this.state.Driverlatitude * 1+0.0001, longitude: this.state.Driverlongitude * 1 }
+    var data = { latitude: this.state.Driverlatitude * 1 + 0.0001, longitude: this.state.Driverlongitude * 1 }
     this.DriverMove(data)
   }
   _DriverDown = () => {
-    var data = { latitude: this.state.Driverlatitude * 1-0.0001, longitude: this.state.Driverlongitude * 1 }
+    var data = { latitude: this.state.Driverlatitude * 1 - 0.0001, longitude: this.state.Driverlongitude * 1 }
     this.DriverMove(data)
   }
   _DriverLeft = () => {
-    var data = { latitude: this.state.Driverlatitude * 1, longitude: this.state.Driverlongitude * 1-0.0001 }
+    var data = { latitude: this.state.Driverlatitude * 1, longitude: this.state.Driverlongitude * 1 - 0.0001 }
     this.DriverMove(data)
   }
   _DriverRight = () => {
-    var data = { latitude: this.state.Driverlatitude * 1, longitude: this.state.Driverlongitude * 1+0.0001 }
+    var data = { latitude: this.state.Driverlatitude * 1, longitude: this.state.Driverlongitude * 1 + 0.0001 }
     this.DriverMove(data)
   }
   _DriverUp2 = () => {
-    var data = { latitude: this.state.Driverlatitude * 1+0.001, longitude: this.state.Driverlongitude * 1 }
+    var data = { latitude: this.state.Driverlatitude * 1 + 0.001, longitude: this.state.Driverlongitude * 1 }
     this.DriverMove(data)
   }
   _DriverDown2 = () => {
-    var data = { latitude: this.state.Driverlatitude * 1-0.001, longitude: this.state.Driverlongitude * 1 }
+    var data = { latitude: this.state.Driverlatitude * 1 - 0.001, longitude: this.state.Driverlongitude * 1 }
     this.DriverMove(data)
   }
   _DriverLeft2 = () => {
-    var data = { latitude: this.state.Driverlatitude * 1, longitude: this.state.Driverlongitude * 1-0.001 }
+    var data = { latitude: this.state.Driverlatitude * 1, longitude: this.state.Driverlongitude * 1 - 0.001 }
     this.DriverMove(data)
   }
   _DriverRight2 = () => {
-    var data = { latitude: this.state.Driverlatitude * 1, longitude: this.state.Driverlongitude * 1+0.001 }
+    var data = { latitude: this.state.Driverlatitude * 1, longitude: this.state.Driverlongitude * 1 + 0.001 }
     this.DriverMove(data)
   }
   // _animatedToZGC = () => {
@@ -858,11 +854,11 @@ export default class HomeScreen extends React.Component {
     // this.setState({min:this.state.Nowlatitude,test4:this.state.Nowlongitude})
   }
   componentWillMount() {
-     
+
 
   }
-  
-  componentDidUpdate(){
+
+  componentDidUpdate() {
 
   }
 
@@ -873,135 +869,140 @@ export default class HomeScreen extends React.Component {
   }))
 
   //底部order动画函数
-  _BottomAnimted(height){
+  _BottomAnimted(height) {
     Animated.timing(                       // 随时间变化而执行动画
       this.state.bottomHeight,            // 动画中的变量值
       {
         toValue: height,                        // 透明度最终变为1，即完全不透明
         duration: 500,                   // 让动画持续一段时间
       }
-    ).start(); 
+    ).start();
   }
 
- //清除地图上面的路线
-  _clearRoute(){
+  //清除地图上面的路线
+  _clearRoute() {
     this.setState({
       RouteCount: 0, PreRoutePointLatitude: 0, PreRoutePointLongtitude: 0,
-      NextRoutePointLatitude: 0, NextRoutePointLongtitude: 0,RouteGuide:[]
+      NextRoutePointLatitude: 0, NextRoutePointLongtitude: 0, RouteGuide: []
     })
   }
   //底部预约和现在位置选择切换执行函数
-  _BottomSwitch(mode){
-    let bottomHeight; 
-    if(mode == 0){
+  _BottomSwitch(mode) {
+    let bottomHeight;
+    if (mode == 0) {
       bottomHeight = positionViewHeigth;
       this._clearRoute();
     }
-    else{
-      const {Nowlatitude,Nowlongitude,Togolatitude,Togolongitude} = this.state
-      if(Togolatitude =='' || Togolongitude =='' || Nowlatitude=='' || Nowlongitude==''){
+    else {
+      const { Nowlatitude, Nowlongitude, Togolatitude, Togolongitude } = this.state
+      if (Togolatitude == '' || Togolongitude == '' || Nowlatitude == '' || Nowlongitude == '') {
         alert("请选择开始地点和目的地")
-        return 
+        return
       }
-      else{
+      else {
         bottomHeight = orderViewHeight
-        this.Route(Nowlatitude,Nowlongitude,Togolatitude,Togolongitude)
+        this.Route(Nowlatitude, Nowlongitude, Togolatitude, Togolongitude)
       }
     }
-   
+
     this.setState({
-      bottommode:mode,
+      bottommode: mode,
     })
     this._BottomAnimted(bottomHeight)
   }
 
-  _orderProcess(orderData){
+  _orderProcess(orderData) {
 
-  
-    this.setState({orderMode:2,orderData:orderData,zoom:15})
+
+    this.setState({ orderMode: 2, orderData: orderData, zoom: 15 })
     this._clearRoute()
-    this.Route(orderData.DriverData.Driverlatitude,orderData.DriverData.Driverlongitude,orderData.NowLocation.Nowlatitude,orderData.NowLocation.Nowlongitude)
+    this.Route(orderData.DriverData.Driverlatitude, orderData.DriverData.Driverlongitude, orderData.NowLocation.Nowlatitude, orderData.NowLocation.Nowlongitude)
     this._BottomAnimted(porcessViewHeight)
     //这里模拟间隔1s接受司机的位置
-    
-    this.carHandle = setInterval(()=>{
-     
-        let posi = {latitude:driverLine[qp].latitude,longitude:driverLine[qp].longitude}
-        console.log(posi)
-        this.DriverMove(posi)
-        qp = qp +1;
-        if(qp == driverLine.length - 1)
-         clearInterval(this.carHandle)
-    },500)
+
+
+    qp = 0;
+    this.carHandle = setInterval(() => {
+
+      let posi = { latitude: driverLine[qp].latitude, longitude: driverLine[qp].longitude }
+      console.log(posi)
+      this.DriverMove(posi)
+      qp = qp + 1;
+      if (qp == driverLine.length - 1)
+        clearInterval(this.carHandle)
+    }, 500)
     //这里开始倾听司机路程fetch
-    
+
 
   }
-  _startOrder(OrderData)
-  {
-    
-    let bottomHeight = positionViewHeigth ;
+  _startOrder(OrderData) {
+
+    let bottomHeight = positionViewHeigth;
     this._BottomAnimted(bottomHeight);
-    this.setState({orderMode:1})//订单mode设置为1,代表正在等待司机接单
+    this.setState({ orderMode: 1 })//订单mode设置为1,代表正在等待司机接单
     //调用开始订单的的接口
     //fecth
     //用于演示的当前位置和目的位置
     //la23.04760968157078,lo113.37458860914228
     //23.049572378446946,113.3705371595053
     const orderId = '002';
- 
+
     const DriverData = {
-      name:"李旭彬",
-      driverId:15,
-      carNumber:"粤666666",
-      carType:'白色奔驰',
+      name: "李旭彬",
+      driverId: 15,
+      carNumber: "粤666666",
+      carType: '白色奔驰',
       Driverlatitude: '23.0526',
       Driverlongitude: '113.3955',
     }
     OrderData.orderId = orderId
-    OrderData.DriverData = DriverData 
+    OrderData.DriverData = DriverData
     console.log(OrderData)
 
     this._orderProcess(OrderData)
-    
+
     //模拟数据
-    
- 
+
+
 
   }
-  _Test(){
+  _Test() {
 
-    let Now={
-      latitude:'23.04760968157078',
-      longitude:'113.37458860914228'
+    let Now = {
+      latitude: '23.04760968157078',
+      longitude: '113.37458860914228'
     }
-    let To={
-      nativeEvent:{
-        latitude:"23.049572378446946",
+    let To = {
+      nativeEvent: {
+        latitude: "23.049572378446946",
         longitude: "113.3705371595053"
       }
     }
     this.Getcity(Now)
     this._logPressEvent(To)
+    this.setState({
+      Driverlatitude:'23.0526',
+      Driverlongitude:'113.3955',
+    })
 
 
     alert("设置基本坐标完成")
-    
-  }
-  
-  _cancelOrder(){
-    this.setState({orderMode:0,bottommode:0})
+
   }
 
-  renderRow(){
-    return(
-        <TouchableOpacity activeOpacity={0.8}>
-         <View style={{backgroundColor:'red'}}>
-              <Text>test</Text>
-          </View>
-        </TouchableOpacity>
+  _cancelOrder() {
+    this.setState({ orderMode: 0, bottommode: 0 })
+  }
+
+  renderRow() {
+    return (
+      <TouchableOpacity activeOpacity={0.8}>
+        <View style={{ backgroundColor: 'red' }}>
+          <Text>test</Text>
+        </View>
+      </TouchableOpacity>
     );
-}
+  }
 
   render() {
     var Pos = {
@@ -1021,13 +1022,13 @@ export default class HomeScreen extends React.Component {
         latitude: this.state.Driverlatitude * 1,
         longitude: this.state.Driverlongitude * 1
       },
-      PrePoint:{
-        latitude:this.state.PreRoutePointLatitude*1,
-        longitude:this.state.PreRoutePointLongtitude*1,
+      PrePoint: {
+        latitude: this.state.PreRoutePointLatitude * 1,
+        longitude: this.state.PreRoutePointLongtitude * 1,
       },
-      NextPoint:{
-        latitude:this.state.NextRoutePointLatitude*1,
-        longitude:this.state.NextRoutePointLongtitude*1,
+      NextPoint: {
+        latitude: this.state.NextRoutePointLatitude * 1,
+        longitude: this.state.NextRoutePointLongtitude * 1,
       }
 
     }
@@ -1054,7 +1055,7 @@ export default class HomeScreen extends React.Component {
           coordinate={Pos.Mainpos}
           zoomLevel={this.state.zoom}
           ref={ref => this.mapView = ref}
-          locationEnabled = {this.state.monted}
+          locationEnabled={this.state.monted}
           locationInterval={2000}
           distanceFilter={10}
           onPress={this._logPressEvent}
@@ -1110,75 +1111,76 @@ export default class HomeScreen extends React.Component {
         </MapView>
         {/* 底部菜单 */}
 
-        <Animated.View style={{...sty.bottom,height:this.state.bottomHeight} }>
-            {this.state.orderMode == 0 &&
-              <View style={{flex:1}}>
-                <View style={sty.BotTop}>
-                  <TouchableOpacity style={sty.Bottom1} onPress={()=>{this._BottomSwitch(0)}}><Text style={sty.fontSize}>现在</Text></TouchableOpacity>
-                  <TouchableOpacity style={sty.Bottom1}  onPress={()=>{this._BottomSwitch(1)}}><Text style={sty.fontSize}>预约</Text></TouchableOpacity>
-                  <TouchableOpacity style={sty.Bottom1}  onPress={()=>{this._Test()}}><Text style={sty.fontSize}>调试</Text></TouchableOpacity>
-                </View>
-                {this.state.bottommode==0?
-                  <View style={sty.NowAndToGo}>
+        <Animated.View style={{ ...sty.bottom, height: this.state.bottomHeight }}>
+          {this.state.orderMode == 0 &&
+            <View style={{ flex: 1 }}>
+              <View style={sty.BotTop}>
+                <TouchableOpacity style={sty.Bottom1} onPress={() => { this._BottomSwitch(0) }}><Text style={sty.fontSize}>现在</Text></TouchableOpacity>
+                <TouchableOpacity style={sty.Bottom1} onPress={() => { this._BottomSwitch(1) }}><Text style={sty.fontSize}>预约</Text></TouchableOpacity>
+                <TouchableOpacity style={sty.Bottom1} onPress={() => { this._Test() }}><Text style={sty.fontSize}>调试</Text></TouchableOpacity>
+              </View>
+              {this.state.bottommode == 0 ?
+                <View style={sty.NowAndToGo}>
                   <TouchableOpacity style={sty.Now}>
-                    <View style={{ flex: 1 ,marginRight:5}}><Image style={{ width: 30, height: 30 }} source={require('../images/greenpoint.png')} /></View>
+                    <View style={{ flex: 1, marginRight: 5 }}><Image style={{ width: 30, height: 30 }} source={require('../images/greenpoint.png')} /></View>
                     <View style={{ flex: 15, backgroundColor: 'white' }}>
                       <Text style={sty.textInputStyle} onPress={(event) => this.Postdata('Now')} key='Now'>{this.state.NowLocation}</Text>
                     </View>
                   </TouchableOpacity>
                   <TouchableOpacity style={sty.Togo}>
-                    <View style={{ flex: 1 ,marginRight:5}}><Image style={{ width: 30, height: 30 }} source={require('../images/orangepoint.png')} /></View>
+                    <View style={{ flex: 1, marginRight: 5 }}><Image style={{ width: 30, height: 30 }} source={require('../images/orangepoint.png')} /></View>
                     <View style={{ flex: 15, backgroundColor: 'white' }}>
                       <Text style={sty.textInputStyle} onPress={(event) => this.Postdata('To')} key='To'>{this.state.Togo}</Text>
                     </View>
                   </TouchableOpacity>
-                </View>:
+                </View> :
                 <OrderView _startOrder={this._startOrder.bind(this)} data={this.state.orderData} />
-                }
-              </View>
-            }
-           { this.state.orderMode ==1 && <WaitOrderView _cancelOrder={this._cancelOrder.bind(this)} />}
-           { (this.state.orderMode ==2 || this.state.orderMode==3) && <StartOrderView _cancelOrder={this._cancelOrder.bind(this)}  data={this.state.orderData}/>}
-          { // 下面是调试
-          // <View style={{flex:6,width:screenWidth - 80}}>
-          //   <View style={sty.debug}>
-          //     <Text>目标位置:{this.changeTwoDecimal(this.state.Togolatitude*1)},{this.changeTwoDecimal(this.state.Togolongitude*1)},{this.changeTwoDecimal(this.state.RouteGuide.length*1)}</Text>
-          //     {/* <Text>司机位置:{this.changeTwoDecimal(this.state.Driverlatitude*1)},{this.changeTwoDecimal(this.state.Driverlongitude*1)},{this.state.loop},{this.state.test4}</Text> */}
-          //     <Text>Pre:{this.changeTwoDecimal(this.state.PreRoutePointLatitude*1)},{this.changeTwoDecimal(this.state.PreRoutePointLongtitude*1)}</Text>
-          //     <Text>Next:{this.changeTwoDecimal(this.state.NextRoutePointLatitude*1)},{this.changeTwoDecimal(this.state.NextRoutePointLongtitude*1)} | {this.state.dis1},{this.state.dis2}</Text>
+              }
+            </View>
+          }
+          {this.state.orderMode == 1 && <WaitOrderView _cancelOrder={this._cancelOrder.bind(this)} />}
+          {(this.state.orderMode == 2 || this.state.orderMode == 3) && <StartOrderView _cancelOrder={this._cancelOrder.bind(this)} data={this.state.orderData} />}
+          {this.state.orderMode == 4 && <PayModeView _cancelOrder={this._cancelOrder.bind(this)}/>}
+          { // 下面是调试s
+            // <View style={{flex:6,width:screenWidth - 80}}>
+            //   <View style={sty.debug}>
+            //     <Text>目标位置:{this.changeTwoDecimal(this.state.Togolatitude*1)},{this.changeTwoDecimal(this.state.Togolongitude*1)},{this.changeTwoDecimal(this.state.RouteGuide.length*1)}</Text>
+            //     {/* <Text>司机位置:{this.changeTwoDecimal(this.state.Driverlatitude*1)},{this.changeTwoDecimal(this.state.Driverlongitude*1)},{this.state.loop},{this.state.test4}</Text> */}
+            //     <Text>Pre:{this.changeTwoDecimal(this.state.PreRoutePointLatitude*1)},{this.changeTwoDecimal(this.state.PreRoutePointLongtitude*1)}</Text>
+            //     <Text>Next:{this.changeTwoDecimal(this.state.NextRoutePointLatitude*1)},{this.changeTwoDecimal(this.state.NextRoutePointLongtitude*1)} | {this.state.dis1},{this.state.dis2}</Text>
 
-          //   </View>
-          //   <View style={{alignContent:'center',flexDirection: 'row',margin:10,justifyContent:'center',alignItems:"center"}}>
-          //     <TextInput style={sty.textInputStyle2} onChangeText={(input) => {this.setState({testinput1:input}) }} value={this.state.testinput1} placeholder={'latitude'}></TextInput>
-          //     <TextInput style={sty.textInputStyle2} onChangeText={(input) => {this.setState({testinput2:input}) }} value={this.state.testinput2} placeholder={'longitude'}></TextInput>
-          //     <TouchableOpacity style={{alignItems:'center',backgroundColor:'lightblue',height:20,width:40,borderRightWidth:1}} onPress={()=>{
-          //         let a=this.changeTwoDecimal(this.state.Driverlatitude)
-          //         let b =this.changeTwoDecimal(this.state.Driverlongitude)
-          //         this.setState({testinput1:a.toString(),testinput2:b.toString()})
-          //         let UserData = Storage.get("User")
-          //         this._MoveFlag = true;
-          //       }
-          //     }>
-          //         <Text>更新</Text>
-          //     </TouchableOpacity>
-          //     <TouchableOpacity style={{alignItems:'center',backgroundColor:'lightblue',height:20,width:40}} onPress={()=>{this.DriverMoveTest()}}><Text>提交</Text></TouchableOpacity>
-          //   </View>
-          //   <View style={{alignContent:'center',flexDirection: 'row',height:15}}>
-          //     <TouchableOpacity style={{alignItems:'center',backgroundColor:'lightblue',width:100,heigth:15,borderRightWidth:1}} onPress={this._Routetest}><Text>路径测试</Text></TouchableOpacity>
-          //     <TouchableOpacity style={{alignItems:'center',backgroundColor:'lightblue',width:20,heigth:15,borderRightWidth:1}} onPress={this._DriverUp}><Text>上</Text></TouchableOpacity>
-          //     <TouchableOpacity style={{alignItems:'center',backgroundColor:'lightblue',width:20,heigth:15,borderRightWidth:1}} onPress={this._DriverDown}><Text>下</Text></TouchableOpacity>
-          //     <TouchableOpacity style={{alignItems:'center',backgroundColor:'lightblue',width:20,heigth:15,borderRightWidth:1}} onPress={this._DriverLeft}><Text>左</Text></TouchableOpacity>
-          //     <TouchableOpacity style={{alignItems:'center',backgroundColor:'lightblue',width:20,heigth:15,borderRightWidth:1}} onPress={this._DriverRight}><Text>右</Text></TouchableOpacity>
-          //     <TouchableOpacity style={{alignItems:'center',backgroundColor:'lightblue',width:30,heigth:15,borderRightWidth:1}} onPress={this._DriverUp2}><Text>上2</Text></TouchableOpacity>
-          //     <TouchableOpacity style={{alignItems:'center',backgroundColor:'lightblue',width:30,heigth:15,borderRightWidth:1}} onPress={this._DriverDown2}><Text>下2</Text></TouchableOpacity>
-          //     <TouchableOpacity style={{alignItems:'center',backgroundColor:'lightblue',width:30,heigth:15,borderRightWidth:1}} onPress={this._DriverLeft2}><Text>左2</Text></TouchableOpacity>
-          //     <TouchableOpacity style={{alignItems:'center',backgroundColor:'lightblue',width:30,heigth:15,borderRightWidth:1}} onPress={this._DriverRigh2}><Text>右2</Text></TouchableOpacity>
-          //   </View>
-          // </View>
-        }
-           
-          
-        
+            //   </View>
+            //   <View style={{alignContent:'center',flexDirection: 'row',margin:10,justifyContent:'center',alignItems:"center"}}>
+            //     <TextInput style={sty.textInputStyle2} onChangeText={(input) => {this.setState({testinput1:input}) }} value={this.state.testinput1} placeholder={'latitude'}></TextInput>
+            //     <TextInput style={sty.textInputStyle2} onChangeText={(input) => {this.setState({testinput2:input}) }} value={this.state.testinput2} placeholder={'longitude'}></TextInput>
+            //     <TouchableOpacity style={{alignItems:'center',backgroundColor:'lightblue',height:20,width:40,borderRightWidth:1}} onPress={()=>{
+            //         let a=this.changeTwoDecimal(this.state.Driverlatitude)
+            //         let b =this.changeTwoDecimal(this.state.Driverlongitude)
+            //         this.setState({testinput1:a.toString(),testinput2:b.toString()})
+            //         let UserData = Storage.get("User")
+            //         this._MoveFlag = true;
+            //       }
+            //     }>
+            //         <Text>更新</Text>
+            //     </TouchableOpacity>
+            //     <TouchableOpacity style={{alignItems:'center',backgroundColor:'lightblue',height:20,width:40}} onPress={()=>{this.DriverMoveTest()}}><Text>提交</Text></TouchableOpacity>
+            //   </View>
+            //   <View style={{alignContent:'center',flexDirection: 'row',height:15}}>
+            //     <TouchableOpacity style={{alignItems:'center',backgroundColor:'lightblue',width:100,heigth:15,borderRightWidth:1}} onPress={this._Routetest}><Text>路径测试</Text></TouchableOpacity>
+            //     <TouchableOpacity style={{alignItems:'center',backgroundColor:'lightblue',width:20,heigth:15,borderRightWidth:1}} onPress={this._DriverUp}><Text>上</Text></TouchableOpacity>
+            //     <TouchableOpacity style={{alignItems:'center',backgroundColor:'lightblue',width:20,heigth:15,borderRightWidth:1}} onPress={this._DriverDown}><Text>下</Text></TouchableOpacity>
+            //     <TouchableOpacity style={{alignItems:'center',backgroundColor:'lightblue',width:20,heigth:15,borderRightWidth:1}} onPress={this._DriverLeft}><Text>左</Text></TouchableOpacity>
+            //     <TouchableOpacity style={{alignItems:'center',backgroundColor:'lightblue',width:20,heigth:15,borderRightWidth:1}} onPress={this._DriverRight}><Text>右</Text></TouchableOpacity>
+            //     <TouchableOpacity style={{alignItems:'center',backgroundColor:'lightblue',width:30,heigth:15,borderRightWidth:1}} onPress={this._DriverUp2}><Text>上2</Text></TouchableOpacity>
+            //     <TouchableOpacity style={{alignItems:'center',backgroundColor:'lightblue',width:30,heigth:15,borderRightWidth:1}} onPress={this._DriverDown2}><Text>下2</Text></TouchableOpacity>
+            //     <TouchableOpacity style={{alignItems:'center',backgroundColor:'lightblue',width:30,heigth:15,borderRightWidth:1}} onPress={this._DriverLeft2}><Text>左2</Text></TouchableOpacity>
+            //     <TouchableOpacity style={{alignItems:'center',backgroundColor:'lightblue',width:30,heigth:15,borderRightWidth:1}} onPress={this._DriverRigh2}><Text>右2</Text></TouchableOpacity>
+            //   </View>
+            // </View>
+          }
+
+
+
         </Animated.View>
 
         {/* 顶部菜单 */}
@@ -1203,30 +1205,30 @@ export default class HomeScreen extends React.Component {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={sty.content}
         >
-        <View style={sty.func}>
-          <Text style={sty.funcfont}>快车</Text>
-        </View>
-        <View style={sty.func}>
-          <Text style={sty.funcfont}>出租车</Text>
-        </View>
-        <View style={sty.func}>
-          <Text style={sty.funcfont}>私家车</Text>
-        </View>
-        <View style={sty.func}>
-          <Text style={sty.funcfont}>代驾</Text>
-        </View>
-        <View style={sty.func}>
-          <Text style={sty.funcfont}>快车2</Text>
-        </View>
-        <View style={sty.func}>
-          <Text style={sty.funcfont}>出租车2</Text>
-        </View>
-        <View style={sty.func}>
-          <Text style={sty.funcfont}>私家车2</Text>
-        </View>
-        <View style={sty.func}>
-          <Text style={sty.funcfont}>代驾2</Text>
-        </View>
+          <View style={sty.func}>
+            <Text style={sty.funcfont}>快车</Text>
+          </View>
+          <View style={sty.func}>
+            <Text style={sty.funcfont}>出租车</Text>
+          </View>
+          <View style={sty.func}>
+            <Text style={sty.funcfont}>私家车</Text>
+          </View>
+          <View style={sty.func}>
+            <Text style={sty.funcfont}>代驾</Text>
+          </View>
+          <View style={sty.func}>
+            <Text style={sty.funcfont}>快车2</Text>
+          </View>
+          <View style={sty.func}>
+            <Text style={sty.funcfont}>出租车2</Text>
+          </View>
+          <View style={sty.func}>
+            <Text style={sty.funcfont}>私家车2</Text>
+          </View>
+          <View style={sty.func}>
+            <Text style={sty.funcfont}>代驾2</Text>
+          </View>
         </ScrollView>
       </View>
     )
@@ -1235,41 +1237,41 @@ export default class HomeScreen extends React.Component {
 
 const sty = StyleSheet.create(
   {
-    textInputStyle2:{
-        backgroundColor: 'white',
-        textAlign: 'center',
+    textInputStyle2: {
+      backgroundColor: 'white',
+      textAlign: 'center',
     },
-    debug:{
-      justifyContent:'center',
-      alignItems:'center',
-      marginBottom:5,
-      flex:1
+    debug: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 5,
+      flex: 1
     },
-    funcbar:{
-      position:'absolute',
-      zIndex:2,
-      top:50,
-      height:30,
-      width:screenWidth,
-      backgroundColor:'white',
-      flex:1,
+    funcbar: {
+      position: 'absolute',
+      zIndex: 2,
+      top: 50,
+      height: 30,
+      width: screenWidth,
+      backgroundColor: 'white',
+      flex: 1,
       borderBottomWidth: 1,
       borderBottomColor: 'gray',
     },
-    content:{
-      flexDirection:'row',
-      justifyContent:'flex-start',
-      alignItems:'center',
+    content: {
+      flexDirection: 'row',
+      justifyContent: 'flex-start',
+      alignItems: 'center',
     },
-    funcfont:{
-      color:'gray',
+    funcfont: {
+      color: 'gray',
     },
-    func:{
-      width:screenWidth/5,
-      paddingTop:4,
-      paddingBottom:5,
-      justifyContent:'center',
-      alignItems:'center',
+    func: {
+      width: screenWidth / 5,
+      paddingTop: 4,
+      paddingBottom: 5,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     topcontianer: {
       zIndex: 2,
@@ -1303,7 +1305,7 @@ const sty = StyleSheet.create(
       backgroundColor: 'white',
       opacity: 0.9,
       flex: 1,
-      flexDirection:"column",
+      flexDirection: "column",
       justifyContent: "center",
       alignContent: 'center',
     },
